@@ -1,0 +1,74 @@
+AllCops:
+  Exclude:
+    - 'spec/**/*'
+  DisplayCopNames: true
+  TargetRubyVersion: 2.2
+
+Style/Documentation:
+  EnforcedStyle: always
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: nested
+  AutoCorrect: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+  AutoCorrect: false
+
+Style/AsciiComments:
+  Exclude:
+    - 'benchmarks/**'
+
+Style/AccessModifierDeclarations:
+  Enabled: false
+
+Style/PercentLiteralDelimiters:
+  PreferredDelimiters:
+    default: ()
+    '%i': '()'
+    '%I': '()'
+    '%r': '{}'
+    '%w': '()'
+    '%W': '()'
+
+Rails:
+  Enabled: false
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/LineLength:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/LineLength:
+  Max: 100
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - http
+    - https
+  IgnoreCopDirectives: true
+
+Layout/CommentIndentation:
+  Enabled: false
+
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+Layout/EmptyLinesAroundClassBody:
+  EnforcedStyle: no_empty_lines
+
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+Lint/MissingCopEnableDirective:
+  Enabled: false

@@ -1,0 +1,10 @@
+--verbose
+--backtrace
+--debug
+--no-private
+--embed-mixins
+--hide-void-return
+--markup-provider redcarpet
+--markup markdown
+-
+README.md
