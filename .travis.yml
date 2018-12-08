@@ -1,0 +1,30 @@
+rvm:
+  - 2.2.2
+  - 2.5.1
+
+addons:
+  postgresql: "9.4"
+  postgresql: "11"
+
+env:
+  - DB=postgres.9.4
+  - DB=postgres.11
+
+gemfile:
+  - gemfiles/Gemfile.4.0.pg
+  - gemfiles/Gemfile.5.0.pg
+
+env:
+  - ACTIVE_RECORD_BRANCH="master"
+  - ACTIVE_RECORD_VERSION="~> 4.0.3"
+  - ACTIVE_RECORD_VERSION="~> 5.1.0"
+
+matrix:
+  allow_failures:
+    - env: ACTIVE_RECORD_BRANCH="master"
+  exclude:
+    - rvm: 2.2.2
+      env: ACTIVE_RECORD_BRANCH="master"
+
+before_script:
+  - "psql -c 'create database pg_multisearch_test;' -U postgres >/dev/null"
