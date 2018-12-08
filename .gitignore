@@ -7,3 +7,4 @@ doc
 .yardoc
 
 .env*
+spec/support/database.yml
