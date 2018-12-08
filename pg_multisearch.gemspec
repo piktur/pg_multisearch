@@ -12,23 +12,24 @@ Gem::Specification.new do |s| # rubocop:disable BlockLength
   s.license     = 'MIT'
   s.version     = PgMultisearch::VERSION
   s.date        = '2018-12-08'
-  s.summary     = <<~TXT
+  s.summary     = <<-SUMMARY.strip
     pg_multisearch builds ActiveRecord named scopes that take advantage of
     PostgreSQL’s full text search
-  TXT
+  SUMMARY
   s.description = s.summary
-  s.files       = Dir[
-    'bin/*',
-    '{lib}/**/*.rb',
-    'sql/*.sql',
-    '.rubocop.yml',
-    '.yardopts',
-    'Gemfile',
-    'Rakefile',
-    'README.markdown',
-    base: __dir__
-  ]
-  s.test_files    = Dir['spec/**/*.rb', base: __dir__]
+  Dir.chdir(__dir__) do
+    s.files = Dir[
+      'bin/*',
+      '{lib}/**/*.rb',
+      'sql/*.sql',
+      '.rubocop.yml',
+      '.yardopts',
+      'Gemfile',
+      'Rakefile',
+      'README.markdown',
+    ]
+    s.test_files = Dir['spec/**/*.rb']
+  end
   s.require_paths = %w(lib)
   s.bindir        = 'bin'
 

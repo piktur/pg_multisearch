@@ -1,4 +1,0 @@
-postgresql:
-  database: pg_multisearch_test
-  user: postgres
-  password: password

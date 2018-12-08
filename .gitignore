@@ -8,3 +8,6 @@ doc
 
 .env*
 spec/support/database.yml
+
+tmp
+log

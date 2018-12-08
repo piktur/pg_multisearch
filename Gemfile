@@ -9,6 +9,8 @@ gemspec
 gem 'oj', require: false
 gem 'pg_search', require: false
 
+eval_gemfile './Gemfile.test'
+
 group :benchmark do
   gem 'benchmark-ips'
   gem 'ruby-prof', require: false
@@ -19,15 +21,4 @@ group :development do
   gem 'yard', require: false
 end
 
-group :development, :test do
-  gem 'faker', require: false
-  gem 'gemika'
-  gem 'pry'
-  gem 'pry-rescue'
-  gem 'pry-stack_explorer'
-end
-
-group :test do
-  gem 'rspec'
-  gem 'simplecov', require: false
-end
+gem 'gemika', group: [:development, :test]

@@ -1,0 +1,14 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+ruby '>= 2.2'
+
+gem 'rails', '~> 4.0.13'
+gem 'pg', '~> 0.16.0'
+
+gem 'gemika', group: :test
+
+gem 'pg_multisearch', path: '..'
+
+eval_gemfile '../Gemfile.test'
