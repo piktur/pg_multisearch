@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-require 'pry'
+if ENV['COVERAGE']
+  require 'simplecov'
+
+  SimpleCov.start do
+    add_filter 'spec'
+  end
+end
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
@@ -22,4 +28,14 @@ RSpec.configure do |config|
   config.order = :random
 
   Kernel.srand config.seed
+
+  config.prepend_before(:all) do
+    Object.const_set(:Test, Module.new) unless Object.const_defined?(:Test)
+  end
+
+  config.append_after(:all) do
+    Object.send(:remove_const, :Test)
+  end
 end
+
+require 'pry'

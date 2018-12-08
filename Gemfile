@@ -21,6 +21,7 @@ end
 
 group :development, :test do
   gem 'faker', require: false
+  gem 'gemika'
   gem 'pry'
   gem 'pry-rescue'
   gem 'pry-stack_explorer'
