@@ -1,0 +1,1 @@
+DROP TRIGGER pg_search_tsvectorupdate;

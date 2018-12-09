@@ -1,0 +1,92 @@
+class CreatePgMultisearchDocuments < ActiveRecord::Migration
+  def up
+    create_table :pg_search_documents do |t|
+      t.belongs_to :searchable, :polymorphic => true, :index => true
+      t.timestamps null: false
+    end
+
+    add_column :pg_search_documents, :tsv, :tsvector
+    add_column :pg_search_documents, :data, :jsonb
+    add_column :pg_search_documents, :header, :text
+    add_column :pg_search_documents, :provenance, :datetime
+
+    add_index  :pg_search_documents, :provenance
+    add_index  :pg_search_documents, :tsv, using: :gin
+
+    execute <<-SQL.strip
+
+<%= create_type_searchable %>
+    SQL
+
+    <%= postgresql_version('<', 11000) %> && execute <<-SQL.strip
+
+<%= create_function_jsonb_to_tsvector %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= create_function_pg_search_words %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= create_function_pg_search_document %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= alter_table_pg_search_documents_searchable_type %>
+
+    SQL
+
+    execute <<-SQL.strip
+
+<%= create_trigger_pg_search_tsvectorupdate %>
+
+    SQL
+
+    execute <<-SQL.strip
+
+<%= create_index_pg_search_documents_header %>
+    SQL
+  end
+
+  def down
+    <%= postgresql_version('<', 11000) %> && execute <<-SQL.strip
+
+<%= drop_function_jsonb_to_tsvector%>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= drop_function_pg_search_document %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= drop_function_pg_search_words %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= drop_trigger_pg_search_tsvectorupdate %>
+    SQL
+
+    execute <<-SQL.strip
+
+<%= drop_type_searchable %>
+    SQL
+
+    change_column :pg_search_documents, :searchable_type, :text
+
+    remove_index :pg_search_documents, :tsv
+    remove_index :pg_search_documents, :provenance
+    remove_index :pg_search_documents, name: :pg_search_documents_header_idx
+
+    remove_column :pg_search_documents, :provenance
+    remove_column :pg_search_documents, :header
+    remove_column :pg_search_documents, :data
+    remove_column :pg_search_documents, :tsv
+    drop_table    :pg_search_documents
+  end
+end

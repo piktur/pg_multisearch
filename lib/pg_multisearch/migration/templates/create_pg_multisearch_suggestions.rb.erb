@@ -1,0 +1,16 @@
+class CreatePgMultisearchSuggestions < ActiveRecord::Migration
+  def up
+    execute <<-SQL.strip
+      <%= create_table_pg_search_suggestions %>
+    SQL
+
+    execute <<-SQL.strip
+      <%= create_index_pg_search_suggestions %>
+    SQL
+  end
+
+  def down
+    remove_index :pg_search_suggestions, :pg_search_suggestions_idx
+    drop_table :pg_search_suggestions
+  end
+end
