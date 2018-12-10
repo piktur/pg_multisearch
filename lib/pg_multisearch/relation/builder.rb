@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-class PgMultisearch::Index
-  # @see PgSearch::ScopeOptions#subquery
-  class ScopeOptions < ::PgSearch::ScopeOptions
+module PgMultisearch
+  class Relation::Builder < ::PgSearch::ScopeOptions
+    FEATURE_CLASSES[:age]     = Features::Age
+    FEATURE_CLASSES[:tsearch] = Features::TSearch
+
     def apply(scope)
       scope = include_table_aliasing_for_rank(scope)
       rank_table_alias = scope.pg_search_rank_table_alias(:include_counter)
