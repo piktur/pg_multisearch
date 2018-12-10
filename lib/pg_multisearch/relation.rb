@@ -5,7 +5,6 @@ module PgMultisearch
     extend ::ActiveSupport::Autoload
 
     autoload :CollectionProxy
-    autoload :Pagination
     autoload :Results
   end
 end
