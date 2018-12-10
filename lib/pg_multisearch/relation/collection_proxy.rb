@@ -1,39 +1,56 @@
 # frozen_string_literal: true
 
 module PgMultisearch
-  # Delegate pagination attributes to the{#relation}
   module Relation::CollectionProxy
     # @!attribute [r] relation
     #   @return [ActiveRecord::Relation]
     attr_accessor :relation
 
-    # @return [ActiveRecord::Relation]
-    def page
-      relation.page
-    end
+    # @!attribute [r] page
+    #   @return [Integer]
+    attr_accessor :page
 
-    # @return [Integer]
-    def current_page
-      relation.current_page
-    end
+    # @!attribute [r] limit
+    #   @return [Integer]
+    attr_accessor :limit
+
+    alias current_page page
 
     # @return [Integer]
     def total_pages
-      relation.total_pages
+      (count.to_f / limit).ceil
+    end
+
+    alias limit_value limit
+
+    # @return [Integer]
+    def offset
+      (page - 1) * limit
     end
 
     # @return [Integer]
-    def limit_value
-      relation.limit_value
+    def count
+      @count ||= execute(relation.count.to_sql).getvalue(0, 0)
     end
-
-    # @return [Integer]
-    def size
-      relation.size
-    end
-    alias count size
+    alias size count
 
     private
+
+      # @return [PG::Result]
+      def all
+        execute(relation.to_sql)
+      end
+
+      # @param [String] sql
+      #
+      # @return [PG::Result]
+      def execute(sql)
+        connection.execute(sql)
+      end
+
+      def connection
+        relation.connection
+      end
 
       def method_missing(method, *args)
         *args, include_private = args

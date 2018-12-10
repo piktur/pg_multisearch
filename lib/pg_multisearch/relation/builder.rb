@@ -9,15 +9,34 @@ class PgMultisearch::Index
 
       scope
         .joins(rank_join(rank_table_alias))
-        .order(
-          "#{rank_table_alias}.rank DESC", # rank may be an array
-          "#{scope.table_name}.searchable_type ASC",
-          order_within_rank
-        )
         .extend(DisableEagerLoading)
         .extend(WithPgSearchRank)
-        # .instance_eval { reorder("#{table_name}.searchable_type ASC", *orders) }
-        # .includes(:searchable) # preload searchable if not using denormalized documents
+        .extend(Count[self])
+    end
+
+    module Count
+      def self.[](builder)
+        Module.new do
+          define_method(:count) do
+            unscoped
+              .select('COUNT(*)')
+              .joins(builder.subquery_join)
+              .where(builder.conditions)
+          end
+        end
+      end
+    end
+
+    def subquery_join
+      @subquery_join ||= super
+    end
+
+    def conditions
+      @conditions ||= super
+    end
+
+    def order_within_rank
+      config.order_within_rank
     end
   end
 end

@@ -19,40 +19,63 @@ module PgMultisearch
       #       .extending(::Search::Pagination)
       #   end
       #
+      # @yieldparam [ActiveRecord::Relation] relation
+      #
       # @return [ActiveRecord::Relation]
-      def search(query, type: nil, preload: false, ranked_by: ':age', **)
+      def search(query, type: nil, preload: false, ranked_by: nil, **)
         return none if query.nil?
 
-        scope_options(
+        builder = builder(
           query:     query,
           ranked_by: ranked_by
-        ).apply(self).instance_eval do
-          where(searchable_type: type.to_s) if type
+        )
 
-          yield with_pg_search_rank if block_given?
+        builder.apply(self).instance_eval do
+          scope = self
+          scope = scope.where(searchable_type: type.to_s) if type
+          scope = scope.with_pg_search_rank
+          scope = yield scope if block_given?
+          scope = scope.order(builder.order_within_rank) if builder.order_within_rank
 
-          Preloader.call(self) if preload
+          if preload
+            scope = scope.includes(:searchable)
+            Preloader.call(scope)
+          end
 
-          self
+          scope
         end
       end
 
       private
-        
-        def scope_options(options)
-          ScopeOptions.new(config(options))
+
+        # @param [Hash] options Override {PgMultisearch.options}
+        #
+        # @return [ScopeOptions]
+        def builder(options)
+          Relation::Builder.new(config(options))
         end
 
+        # @param (see #scope_options)
+        #
+        # @return [Configuration]
         def config(options)
           Configuration.new(
             {
               **::PgMultisearch.options,
               against: %i(content header),
-              **options
+              **options.reject { |k, v| v.nil? }
             },
             self
           )
         end
     end
+
+    # @return [Float]
+    def pg_search_rank
+      self[:pg_search_rank]
+    end
+    alias rank pg_search_rank
   end
 end
+
+require_relative './relation/builder.rb'

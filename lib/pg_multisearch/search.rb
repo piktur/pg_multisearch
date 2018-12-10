@@ -44,6 +44,10 @@ module PgMultisearch
     #   @return [Type]
     attr_reader :type
 
+    # @!attribute [r] page
+    #   @return [Integer]
+    attr_reader :page
+
     # @!attribute [rw] scope
     #   @return [ActiveRecord::Relation]
     attr_accessor :scope
@@ -55,23 +59,20 @@ module PgMultisearch
     # @param [Hash] params The request parameters
     # @param [Hash] options The scope options
     #
-    # @!option [String] params :query
-    # @!option [Integer] params :type
-    # @!option [Document::Rank::CRITERION] params :ranked_by
-    # @!option [Boolean] options :preload Preload {Index#searchable} associations
-    def initialize(params, options = ::EMPTY_HASH)
-      if params
-        self.query = params['query']
-        self.type  = params['type']
-        options[:ranked_by] = params['ranked_by'] || ':age'
-      end
-
+    # @option [String] params :search
+    # @option [Hash] params :page
+    # @option [Boolean] options :preload Preload {Index#searchable} associations
+    def initialize(params, options = {})
       @options = options
+      @loaded  = false
+
+      search_params(params[:search])
+      page_params(params[:page])
     end
 
     # @return [void]
     def type=(value)
-      @type = value.present? ? Search.types[value.to_i] : nil
+      @type = value.present? ? self.class.types[value.to_i] : nil
     end
 
     # @yieldparam [ActiveRecord::Relation] relation
@@ -82,15 +83,20 @@ module PgMultisearch
       self.scope = model.search(query, type: type, **options, &block)
     end
 
-    # @return [Results] The materialized relation
+    # @return [Relation::Results] The materialized relation
     def loaded
-      @loaded ||= Results.call(scope, ranked_by).results
+      return scope if @loaded
+
+      self.scope = Relation::Results
+        .new(scope, *page ? [page, limit] : nil)
+        .results
+        .tap { loaded! }
     end
     alias to_a loaded
 
     # @return [Integer]
     def count
-      loaded.size # avoid additional query
+      scope.size # avoid additional query
     end
 
     # @return [Enumerator]
@@ -100,8 +106,47 @@ module PgMultisearch
 
     private
 
+      def loaded!
+        @loaded = true
+      end
+
+      # @return [ActiveRecord::Base]
       def model
         ::PgMultisearch::Index
+      end
+
+      # @return [String]
+      def table_name
+        model.table_name
+      end
+
+      # @todo Handle nested page parameters
+      #
+      # @param [Integer, Hash] params
+      #
+      # @return [void]
+      def page_params(params)
+        @page = case params
+        when ::String  then params.to_i
+        when ::Integer then params
+        when ::Hash    then params
+        end
+      end
+
+      # @param [Hash] params
+      #
+      # @option [String] params :query
+      # @option [Integer] params :type
+      # @option [String] params :ranked_by
+      #
+      # @return [void]
+      def search_params(params)
+        return if params.nil?
+
+        self.query = params[:query]
+        self.type  = params[:type]
+
+        options[:ranked_by] = params[:ranked_by]
       end
   end
 end
