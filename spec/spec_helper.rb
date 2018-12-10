@@ -39,3 +39,4 @@ RSpec.configure do |config|
 end
 
 require 'pry'
+require 'pg_multisearch'

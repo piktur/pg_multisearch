@@ -24,6 +24,8 @@ RSpec.configure do |config|
   end
 end
 
-# require_relative './support/with_model.rb'
-require_relative './support/database.rb'
-require_relative './support/generator.rb'
+%w(
+  database
+  with_model
+  generator
+).each { |f| require_relative "./support/#{f}.rb" }
