@@ -23,20 +23,20 @@ module PgMultisearch
 
       private
 
-      def connection
-        ::ActiveRecord::Base.connection
-      end
+        def connection
+          ::ActiveRecord::Base.connection
+        end
 
-      def postgresql_version(operator = '<', version)
-        "::ActiveRecord::Base.connection.send(:postgresql_version) #{operator} #{version}"
-      end
+        def postgresql_version(operator = '<', version)
+          "::ActiveRecord::Base.connection.send(:postgresql_version) #{operator} #{version}"
+        end
 
-      def read_sql_file(filename = __callee__)
-        dir = ::File.expand_path('../../../sql', __dir__)
-        filename = ::File.join(dir, "#{filename}.sql")
+        def read_sql_file(filename = __callee__)
+          dir = ::File.expand_path('../../../sql', __dir__)
+          filename = ::File.join(dir, "#{filename}.sql")
 
-        ::File.read(filename).strip
-      end
+          ::File.read(filename).strip
+        end
     end
   end
 end
