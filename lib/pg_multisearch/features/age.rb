@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'pg_search/feature'
-
 module PgMultisearch
   module Features
     class Age < Feature

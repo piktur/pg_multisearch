@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative './multisearchable/document.rb'
-
 module PgMultisearch
   # `PgSearch#multisearchable` does not honour attribute weight. Multisearchable reimplements
   # `PgSearch::Multisearchable#pg_search_document_attrs` allowing indexed data to be weighted.
@@ -15,7 +13,7 @@ module PgMultisearch
   # | data       | jsonb    | A denormalized copy of the data necessary to render a result (JSON) |
   # | provenance | datetime | A date by which this document should be ranked when sorted by age   |
   module Multisearchable
-    extend ::ActiveSuport::Autoload
+    extend ::ActiveSupport::Autoload
 
     autoload :AsDocument
     autoload :Document

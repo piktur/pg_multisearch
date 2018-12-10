@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'pg_search/features/feature'
+
 module PgMultisearch
   module Features
     class Feature < ::PgSearch::Features::Feature
