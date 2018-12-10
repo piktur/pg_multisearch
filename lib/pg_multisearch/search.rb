@@ -31,8 +31,10 @@ module PgMultisearch
       attr_reader :types
 
       # @param [Array<ActiveRecord::Base>] types
-      def types=(*types)
-        @types = Types.new(*types.map { |t| ::Object.const_get(t, false) })
+      def types=(types)
+        @types = Types.new(*types.map { |type|
+          type.is_a?(::String) || type.is_a?(::Symbol) ? ::Object.const_get(type, false) : type
+        })
       end
     end
 
