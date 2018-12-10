@@ -10,98 +10,101 @@ module PgMultisearch::Document
   module Base
     def self.included(base)
       base.include ::ActiveModel::Conversion
-      base.extend ClassMethods
+      base.extend  ClassMethods
+      base.include InstanceMethods
     end
 
-    # @!attribute [r] attributes
-    #   @return [Hash{Symbol => Object}]
-    attr_reader :attributes
+    module InstanceMethods
+      # @!attribute [r] attributes
+      #   @return [Hash{Symbol => Object}]
+      attr_reader :attributes
 
-    # @!attribute [r] attributes
-    #   @return [Array<Symbol>]
-    attr_reader :attribute_names
+      # @!attribute [r] attributes
+      #   @return [Array<Symbol>]
+      attr_reader :attribute_names
 
-    # @!attribute [r] rank
-    #   @return [Rank]
-    attr_accessor :rank
+      # @!attribute [r] rank
+      #   @return [Rank]
+      attr_accessor :rank
 
-    # @param [Hash, String] attributes
-    # @param [Float] rank
-    def initialize(attributes = ::EMPTY_HASH, rank = 0.0)
-      attributes = case attributes
-      when ::String then ::Oj.load(attributes, symbol_keys: true)
-      when ::Hash   then attributes.deep_symbolize_keys
+      # @param [Hash, String] attributes
+      # @param [Float] rank
+      def initialize(attributes = ::EMPTY_HASH, rank = 0.0)
+        attributes = case attributes
+        when ::String then ::Oj.load(attributes, symbol_keys: true)
+        when ::Hash   then attributes.deep_symbolize_keys
+        end
+
+        attributes[:__id__] = attributes[:__id__].to_i
+
+        super(attributes, rank.to_f)
+
+        @attribute_names = attributes.keys
       end
 
-      attributes[:__id__] = attributes[:__id__].to_i
-
-      super(attributes, rank.to_f)
-
-      @attribute_names = attributes.keys
-    end
-
-    # @!attribute [r] id
-    #   @return [Integer]
-    def id
-      __id__
-    end
-
-    # @example
-    #   Document = Struct.new(:attributes) do
-    #     alias_method :name, :attribute
-    #   end
-    #   doc = Document.new(name: 'Someone')
-    #   doc.name # => 'Someone'
-    #
-    # @return [Symbol] key The value assigned to {#__callee__}
-    #
-    # @return [Object]
-    def attribute
-      self[__callee__]
-    end
-
-    # @return [.model]
-    def model
-      self.class.model
-    end
-
-    # @return [.model_name]
-    def model_name
-      self.class.model_name
-    end
-
-    # @return [ActiveRecord::Base] The represented {#model} matching {#id}
-    def to_model
-      model.find(id)
-    end
-
-    # @param [Base] other
-    #
-    # @return [-1] if {#rank} < `other.rank`
-    # @return [0] if {#rank} == `other.rank`
-    # @return [1] if {#rank} > `other.rank`
-    def <=>(other)
-      rank <=> other.rank
-    end
-
-    # @note ActiveModel compatibility
-    def persisted?
-      true
-    end
-
-    def to_partial_path
-      model._to_partial_path
-    end
-
-    private
-
-      def method_missing(method, *)
-        attributes.fetch(method) { super }
+      # @!attribute [r] id
+      #   @return [Integer]
+      def id
+        __id__
       end
 
-      def respond_to_missing?(method, *)
-        attributes.key?(method) || super
+      # @example
+      #   Document = Struct.new(:attributes) do
+      #     alias_method :name, :attribute
+      #   end
+      #   doc = Document.new(name: 'Someone')
+      #   doc.name # => 'Someone'
+      #
+      # @return [Symbol] key The value assigned to {#__callee__}
+      #
+      # @return [Object]
+      def attribute
+        attributes[__callee__]
       end
+
+      # @return [.model]
+      def model
+        self.class.model
+      end
+
+      # @return [.model_name]
+      def model_name
+        self.class.model_name
+      end
+
+      # @return [ActiveRecord::Base] The represented {#model} matching {#id}
+      def to_model
+        model.find(id)
+      end
+
+      # @param [Base] other
+      #
+      # @return [-1] if {#rank} < `other.rank`
+      # @return [0] if {#rank} == `other.rank`
+      # @return [1] if {#rank} > `other.rank`
+      def <=>(other)
+        rank <=> other.rank
+      end
+
+      # @note ActiveModel compatibility
+      def persisted?
+        true
+      end
+
+      def to_partial_path
+        model._to_partial_path
+      end
+
+      private
+
+        def method_missing(method, *)
+          attributes.fetch(method) { super }
+        end
+
+        def respond_to_missing?(method, *)
+          attributes.key?(method) || super
+        end
+    end
   end
 
   module ClassMethods
