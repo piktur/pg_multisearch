@@ -2,5 +2,10 @@
 
 module PgMultisearch
   module Relation
+    extend ::ActiveSupport::Autoload
+
+    autoload :CollectionProxy
+    autoload :Pagination
+    autoload :Results
   end
 end
