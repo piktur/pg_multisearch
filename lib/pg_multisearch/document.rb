@@ -19,13 +19,13 @@ module PgMultisearch
       #
       # @return [Base]
       def call(model, &block)
-        model.const_set :Document, ::Struct.new(:attributes, :rank) {
+        model.const_set(:Document, ::Struct.new(:attributes, :rank) {
           include Base
 
           self.model = model
 
           block_given? && class_eval(&block)
-        }
+        })
 
         defined?(::ActiveSupport::Dependencies) &&
           ::ActiveSupport::Dependencies.unloadable("#{model}::Document")
