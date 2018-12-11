@@ -12,10 +12,7 @@ Gem::Specification.new do |s| # rubocop:disable BlockLength
   s.license     = 'MIT'
   s.version     = PgMultisearch::VERSION
   s.date        = '2018-12-08'
-  s.summary     = <<-SUMMARY.strip
-    pg_multisearch builds ActiveRecord named scopes that take advantage of
-    PostgreSQL’s full text search
-  SUMMARY
+  s.summary     = 'pg_multisearch builds ActiveRecord named scopes that take advantage of PostgreSQL\'s full text search'
   s.description = s.summary
   Dir.chdir(__dir__) do
     s.files = Dir[
