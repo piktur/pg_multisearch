@@ -1,0 +1,13 @@
+class AddDataToPgMultisearchIndex < ActiveRecord::Migration
+  def up
+    add_column :pg_search_documents, :data, :jsonb
+<% if options[:index] -%>
+    add_index :pg_search_documents, :data, using: :gin
+<% end -%>
+  end
+
+  def down
+    remove_column :pg_search_documents, :data
+    remove_index :pg_search_document, :data if index_exists?(:pg_search_document, :data)
+  end
+end

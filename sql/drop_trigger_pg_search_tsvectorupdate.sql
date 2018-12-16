@@ -1,1 +1,1 @@
-DROP TRIGGER pg_search_tsvectorupdate;
+DROP TRIGGER pg_search_tsvectorupdate ON pg_search_documents;

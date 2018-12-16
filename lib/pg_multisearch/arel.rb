@@ -6,12 +6,20 @@ module PgMultisearch
       ::Arel::Nodes::Descending.new(exp)
     end
 
-    def fn(name, args = ::EMPTY_ARRAY)
+    def fn(name, args = EMPTY_ARRAY)
       ::Arel::Nodes::NamedFunction.new(name.to_s, args)
     end
 
-    def arel_wrap(sql_string)
-      ::Arel::Nodes::Grouping.new(::Arel.sql(sql_string))
+    def arel_wrap(str)
+      ::Arel::Nodes::Grouping.new(::Arel.sql(str))
+    end
+
+    def as(expression, aliaz)
+      ::Arel::Nodes::As.new(expression, ::Arel.sql(aliaz))
+    end
+
+    def current_timestamp
+      ::Arel.sql('current_timestamp')
     end
   end
 end

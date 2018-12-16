@@ -30,6 +30,25 @@ module Test
       get '/search' => 'test/search#call'
     end
   end
+
+  # class Search < ::PgMultisearch::Search; end
+
+  # class SearchController < ::ActionController::Metal
+  #   def call
+  #     @search = Search.new(params[:search])
+  #     @results = @search.to_a
+  #   end
+  # end
+
+  # class Migration < ActiveRecord::Migration
+  #   def up
+  #   end
+
+  #   def down
+  #   end
+  # end
+
+  # Migration.migrate(:up)
 end
 
 Test::Application.initialize!

@@ -64,6 +64,7 @@ module PgMultisearch
     # @option [String] params :search
     # @option [Hash] params :page
     # @option [Boolean] options :preload Preload {Index#searchable} associations
+    # @option [Boolean] options :document Load denormalized {Document::Base}
     def initialize(params, options = {})
       @options = options
       @loaded  = false
@@ -77,24 +78,20 @@ module PgMultisearch
       @type = value.present? ? self.class.types[value.to_i] : nil
     end
 
-    # @yieldparam [ActiveRecord::Relation] relation
-    #   @see Index.search
+    # @yieldparam (see Index.search)
     #
     # @return [ActiveRecord::Relation]
     def results(&block)
       self.scope = model.search(query, type: type, **options, &block)
     end
 
-    # @return [Relation::Results] The materialized relation
-    def loaded
+    # @return [ActiveRecord::Relation, Array] The materialized relation
+    def load
       return scope if @loaded
 
-      self.scope = Relation::Results
-        .new(scope, *page ? [page, limit] : nil)
-        .results
-        .tap { loaded! }
+      self.scope = scope.load(*page ? [page, limit] : nil).tap { loaded! }
     end
-    alias to_a loaded
+    alias to_a load
 
     # @return [Integer]
     def count

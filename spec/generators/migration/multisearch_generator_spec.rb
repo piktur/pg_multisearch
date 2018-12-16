@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require_relative File.expand_path('lib/pg_multisearch/migration/multisearch_generator.rb', Dir.pwd)
+require 'pg_multisearch/generators/migration/index_generator.rb'
 
-# PgMultisearch::Migration::MultisearchGenerator.start
-RSpec.describe PgMultisearch::Migration::MultisearchGenerator, type: :generator do
+RSpec.describe PgMultisearch::Generators::Migration::IndexGenerator, type: :generator do
   tmp = File.expand_path('tmp', Dir.pwd)
   destination tmp
 
@@ -16,11 +15,11 @@ RSpec.describe PgMultisearch::Migration::MultisearchGenerator, type: :generator 
   end
 
   let(:types) { %w(A B C) }
-  let(:path) { Dir["#{tmp}/db/migrate/*_create_pg_multisearch_documents.rb"][0] }
+  let(:path) { Dir["#{tmp}/db/migrate/*_create_pg_multisearch_index.rb"][0] }
   let(:contents) { File.read(path) }
 
   it 'should generate migration' do
     expect(File.exist?(path)).to be(true)
-    expect(contents).to start_with("class CreatePgMultisearchDocuments < ActiveRecord::Migration")
+    expect(contents).to start_with("class CreatePgMultisearchIndex < ActiveRecord::Migration")
   end
 end

@@ -1,0 +1,17 @@
+Install plugins and associated migrations:
+  - age          Add date column to the index; provide mechanism to rank matching results by age
+  - document     Add json column to the index; denormalized data may be used to render view fragments
+  - suggestions  Add scope to retrieve a list of relevant search terms
+
+Example:
+  rails g pg_multisearch:install Search \
+  --types ModelName \
+  --use '{
+    "age": {
+      "column": "provenance"
+    },
+    "document": {
+      "index": true
+    },
+    "suggestions": true
+  }'

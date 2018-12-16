@@ -23,7 +23,7 @@ module PgMultisearch
 
       # @return [String]
       def call(input)
-        return connection.quote(::EMPTY_STRING) if input.blank?
+        return connection.quote(EMPTY_STRING) if input.blank?
 
         join(input).to_sql
       end
@@ -77,7 +77,7 @@ module PgMultisearch
         def negated(term)
           return term unless negated? && term.start_with?(NEGATE)
 
-          term[0] = ::EMPTY_STRING
+          term[0] = EMPTY_STRING
           [term, true]
         end
 
@@ -85,7 +85,7 @@ module PgMultisearch
         #
         # @return [String]
         def sanitize(term)
-          term.gsub(DISALLOWED_TSQUERY_CHARACTERS, ::EMPTY_STRING)
+          term.gsub(DISALLOWED_TSQUERY_CHARACTERS, EMPTY_STRING)
         end
 
         # @return [Boolean]

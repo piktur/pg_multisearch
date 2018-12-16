@@ -2,72 +2,35 @@
 
 module PgMultisearch
   class Index < ::ActiveRecord::Base
+    extend ::ActiveSupport::Autoload
+
+    autoload :Builder
+    autoload :Loader
+    autoload :Pagination
+    autoload :Preloader
+    autoload :Rebuild
+    autoload :Rebuilder
+
+    CONTENT_COLUMN = 'content'
+    HEADER_COLUMN = 'header'
+    DMETAPHONE_COLUMN = 'dmetaphone'
+
     include ::PgSearch
 
     self.table_name = 'pg_search_documents'
 
     # @!attribute [r] searchable
     #   @return [ActiveRecord::Base]
-    belongs_to :searchable, polymorphic: true
+    belongs_to  :searchable,
+                polymorphic: true,
+                inverse_of:  :pg_search_document
 
-    class << self
-      # @example
-      #   options = { ranked_by: 'ARRAY[:age, :tsearch]' }
-      #   Index.search(query, type: 'SearchableType', **options) do |relation|
-      #     relation
-      #       .page(params[:page])
-      #       .extending(::Search::Pagination)
-      #   end
-      #
-      # @yieldparam [ActiveRecord::Relation] relation
-      #
-      # @return [ActiveRecord::Relation]
-      def search(query, type: nil, preload: false, ranked_by: nil, **)
-        return none if query.nil?
+    require_relative './index/scope.rb'
+    extend Scope
 
-        builder = builder(
-          query:     query,
-          ranked_by: ranked_by
-        )
-
-        builder.apply(self).instance_eval do
-          scope = self
-          scope = scope.where(searchable_type: type.to_s) if type
-          scope = scope.with_pg_search_rank
-          scope = yield scope if block_given?
-          scope = scope.order(builder.order_within_rank) if builder.order_within_rank
-
-          if preload
-            scope = scope.includes(:searchable)
-            Preloader.call(scope)
-          end
-
-          scope
-        end
-      end
-
-      private
-
-        # @param [Hash] options Override {PgMultisearch.options}
-        #
-        # @return [ScopeOptions]
-        def builder(options)
-          Relation::Builder.new(config(options))
-        end
-
-        # @param (see #scope_options)
-        #
-        # @return [Configuration]
-        def config(options)
-          Configuration.new(
-            {
-              **::PgMultisearch.options,
-              against: %i(content header),
-              **options.reject { |k, v| v.nil? }
-            },
-            self
-          )
-        end
+    # @return [Document::Base]
+    def to_document
+      ::Object.const_get(searchable_type, false).to_document(data || EMPTY_HASH, rank)
     end
 
     # @return [Float]
@@ -77,5 +40,3 @@ module PgMultisearch
     alias rank pg_search_rank
   end
 end
-
-require_relative './relation/builder.rb'

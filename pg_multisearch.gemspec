@@ -17,11 +17,18 @@ Gem::Specification.new do |s| # rubocop:disable BlockLength
   Dir.chdir(__dir__) do
     s.files = Dir[
       'bin/*',
+      'gemfiles/*',
       '{lib}/**/*.rb',
       'sql/*.sql',
+      '.rspec',
       '.rubocop.yml',
+      '.gitignore',
+      'travis.yml',
       '.yardopts',
       'Gemfile',
+      'Gemfile.lock',
+      'LICENSE',
+      'pg_multisearch.gemspec',
       'Rakefile',
       'README.markdown',
     ]

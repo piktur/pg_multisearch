@@ -1,0 +1,111 @@
+class CreatePgMultisearchIndex < ActiveRecord::Migration
+  def up
+    <%= load_migration('create_pg_search_documents') %>
+    ::CreatePgSearchDocuments.migrate(:down) if defined?(::CreatePgSearchDocuments)
+
+    create_table :pg_search_documents
+
+    execute <<-SQL.strip
+<%= create_type_searchable %>
+    SQL
+
+    add_column :pg_search_documents, :content, :tsvector
+    add_column :pg_search_documents, :dmetaphone, :tsvector
+    add_column :pg_search_documents, :header, :text, limit: 255
+    add_column :pg_search_documents, :searchable_type, :searchable, null: false, limit: 15
+    add_column :pg_search_documents, :searchable_id, :integer, null: false
+
+    add_index :pg_search_documents, %i(searchable_type searchable_id), unique: true
+    add_index :pg_search_documents, :content, using: :gin
+
+    <%= postgresql_version('<', 96000) %> && execute(<<-SQL.strip)
+<%= create_function_tsvector_to_array %>
+    SQL
+
+    <%= postgresql_version('<', 110000) %> && execute(<<-SQL.strip)
+<%= create_function_jsonb_to_tsvector %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_string_to_dmetaphone %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_dmetaphone_to_tsquery %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_dmetaphone_to_tsvector %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_pg_search_words %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_pg_search_document_content %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_pg_search_document_dmetaphone %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_function_pg_search_document_header %>
+    SQL
+
+    execute <<-SQL.strip
+<%= create_index_pg_search_documents_header %>
+    SQL
+  end
+
+  def down
+    remove_index :pg_search_documents, :content
+    remove_index :pg_search_documents, name: :pg_search_documents_header_idx
+
+    drop_table :pg_search_documents
+
+    execute <<-SQL.strip
+<%= drop_function_pg_search_document_header %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_pg_search_document_dmetaphone %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_pg_search_document_content %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_pg_search_words %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_dmetaphone_to_tsvector %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_dmetaphone_to_tsquery %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_string_to_dmetaphone %>
+    SQL
+
+    <%= postgresql_version('<', 110000) %> && execute(<<-SQL.strip)
+<%= drop_function_jsonb_to_tsvector%>
+    SQL
+
+    <%= postgresql_version('<', 96000) %> && execute(<<-SQL.strip)
+<%= drop_function_tsvector_to_array %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_type_searchable %>
+    SQL
+
+    <%= load_migration('create_pg_search_documents') %>
+    ::CreatePgSearchDocuments.migrate(:up) if defined?(::CreatePgSearchDocuments)
+  end
+end

@@ -1,0 +1,19 @@
+class <%= class_name %>
+  extend  ::ActiveModel::Naming
+  include ::ActiveModel::Conversion
+  include ::PgMultisearch::Search
+
+  self.types = [
+<%= options[:types].map { |type| "    ::#{inflector.camelize(type)}" }.join(",\n") %>
+  ]
+
+  # @example Modify the scope
+  #   def results(*)
+  #     super do |scope, _builder|
+  #       scope.page(page)
+  #     end
+  #   end
+  def results(*)
+    super
+  end
+end
