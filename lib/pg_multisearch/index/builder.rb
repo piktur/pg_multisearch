@@ -35,13 +35,13 @@ module PgMultisearch
       end
 
       module Count
-        def self.[](constraints)
+        def self.[](rank_constraints)
           Module.new do
             define_method(:count) do
               unscoped
                 .select('COUNT(*)')
-                .where(wheres.reduce(&:and))
-                .where(constraints)
+                .where(constraints.reduce(&:and))
+                .where(rank_constraints)
             end
           end
         end
