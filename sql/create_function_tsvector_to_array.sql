@@ -1,6 +1,6 @@
-CREATE FUNCTION tsvector_to_array(tsvector)
+CREATE OR REPLACE FUNCTION tsvector_to_array(tsvector)
 RETURNS text[] IMMUTABLE AS $$
 BEGIN
-  SELECT array_agg(word) FROM ts_stat('SELECT $1');
+  RETURN array_agg(word) FROM ts_stat('SELECT (' || quote_literal(to_tsvector('Eaton Vance')) || ')::tsvector');
 END
 $$ LANGUAGE plpgsql;
