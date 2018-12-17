@@ -44,14 +44,27 @@ module PgMultisearch
   register(:document)    { Document }
   register(:suggestions) { Suggestions }
 
-  # @param [ActiveRecord::Base] model The {Indexable} type to rebuild
+  # @param [Array<ActiveRecord::Base>] model The {Indexable} type(s) to rebuild
   # @param [Hash] options
   #
   # @option [Boolean] options :clean (true) Delete existing documents before rebuild
   #
   # @return [void]
-  def self.rebuild!(model, options = EMPTY_HASH)
-    Index::Rebuild.new(model, options)
+  def self.rebuild!(model = ::Search.types.map(&:to_s), schema: nil, **options)
+    connection = Index.connection
+    original_schema_search_path = connection.schema_search_path
+
+    Array(model).each do |model|
+      model_name = ::ActiveSupport::Inflector.classify(model)
+      model      = ::Object.const_get(model_name, false)
+
+      begin
+        connection.schema_search_path = schema if schema
+        Index::Rebuild.new(model, options)
+      ensure
+        connection.schema_search_path = original_schema_search_path
+      end
+    end
 
     true
   end

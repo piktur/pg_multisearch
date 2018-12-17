@@ -8,22 +8,23 @@ Rake::Task['pg_search:multisearch:rebuild'].clear
 namespace :pg_multisearch do
   desc 'Rebuild PgMultisearch document(s) for the given model'
   task :rebuild, [:model, :schema] => :environment do |_task, args|
-    raise ::ArgumentError, <<-MESSAGE.strip_heredoc unless args.model
-      You must pass a model as an argument.
-      Example: rake pg_multisearch:rebuild[Post]
-    MESSAGE
+    args  = args.to_hash
+    model = args.fetch(:model) do
+      msg = 'You have not specified a model. Do you want to reindex ALL searchable types? (y/n)'
 
-    model_name = ::ActiveSupport::Inflector.classify(args[:model])
-    model      = ::Object.const_get(model_name, false)
+      STDOUT.puts "\e[33m#{msg}\e[0m"
+      input = STDIN.gets.chomp
 
-    connection = ::PgMultisearch::Index.connection
-    original_schema_search_path = connection.schema_search_path
-
-    begin
-      connection.schema_search_path = args.schema if args.schema
-      ::PgMultisearch.rebuild!(model)
-    ensure
-      connection.schema_search_path = original_schema_search_path
+      if input =~ /(?:y|yes|t|true|1)/i
+        Search.types.map(&:to_s)
+      else
+        raise ArgumentError, <<-MESSAGE.strip_heredoc
+          You must pass a model as an argument.
+          Example: rake pg_multisearch:rebuild[Post]
+        MESSAGE
+      end
     end
+
+    ::PgMultisearch.rebuild!(model, schema: args[:schema])
   end
 end
