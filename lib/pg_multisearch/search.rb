@@ -83,13 +83,19 @@ module PgMultisearch
     # @return [ActiveRecord::Relation]
     def results(&block)
       self.scope = model.search(query, type: type, **options, &block)
+      scope
     end
 
     # @return [ActiveRecord::Relation, Array] The materialized relation
     def load
+      return [] if scope.none?
       return scope if @loaded
 
-      self.scope = scope.load(*page ? [page, limit] : nil).tap { loaded! }
+      self.scope = scope.load(*(page ? [page, limit] : nil))
+
+      loaded!
+
+      scope
     end
     alias to_a load
 

@@ -27,7 +27,7 @@ module PgMultisearch
 
       module Load
         def load(*args)
-          Document.active? ? Suggestions::Loader.new(self).to_a : super
+          Document.active? ? Suggestions::Loader.new(self).to_a : super()
         end
       end
     end
