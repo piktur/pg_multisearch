@@ -23,8 +23,6 @@ module PgMultisearch
         **options,
         &block
       )
-        return none if query.nil?
-
         build(
           builder,
           query: query,

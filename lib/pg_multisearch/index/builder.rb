@@ -7,6 +7,8 @@ module PgMultisearch
       FEATURE_CLASSES[:dmetaphone] = Features::DMetaphone
 
       def apply(model, preload: false, **, &block) # rubocop:disable MethodLength
+        return none(model) if config.query.empty?
+
         scope = include_table_aliasing_for_rank(model)
 
         self.rank_table_alias = scope
@@ -66,6 +68,13 @@ module PgMultisearch
       end
 
       private
+
+        # @param [ActiveRecord::Base] model
+        #
+        # @return [ActiveRecord::NullRelation]
+        def none(model)
+          model.none.extend(Load)
+        end
 
         def preload(scope)
           scope = scope.includes(:searchable)
