@@ -4,25 +4,38 @@
 #
 # @see https://ksylvest.com/posts/2017-08-23/eager-loading-polymorphic-associations-with-ruby-on-rails
 module PgMultisearch
-  class Index::Preloader < BasicObject
+  class Index::Relation::Preloader < ::BasicObject
     class << self
       # @param [ActiveRecord::Relation] relation
       #
       # @return [ActiveRecord::Relation]
       def call(relation)
+        preloader(relation, :searchable).run
+
         relation.each do |result|
           type = type(result = referenced(result))
 
           preloadable?(associations = preloadable(type)) &&
-            ::ActiveRecord::Associations::Preloader.new(result, associations).run
+            preloader(result, associations).run
         end
 
         relation
       end
 
+      # @param [ActiveRecord::Relation] relation
+      # @param [Array<Symbol, Hash>]
+      #
+      # @return [ActiveRecord::Associations::Preloader]
+      def preloader(relation, associations)
+        ::ActiveRecord::Associations::Preloader.new(
+          relation,
+          Array(associations)
+        )
+      end
+
       private
 
-        # @param [PgSearch::Document] result
+        # @param [PgMultisearch::Document] result
         #
         # @return [ActiveRecord::Base] The record associated with the `result`
         def referenced(result)

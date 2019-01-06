@@ -1,141 +1,201 @@
 # frozen_string_literal: true
 
 module PgMultisearch
-  class Index
-    class Rebuilder
-      include ::PgMultisearch::Arel
+  # @todo Replace Arel with abstract AST method
+  class Index::Rebuilder
+    include ::PgMultisearch.adapter
 
-      # @!attribute [r] type
-      #   @return [PgMultisearch::Indexable]
-      attr_reader :type
+    # @!attribute [r] type
+    #   @return [PgMultisearch::Indexable]
+    attr_reader :type
 
-      # @!attribute [r] target
-      #   @return [Arel::Table]
-      attr_reader :target
+    # @!attribute [r] index
+    #   @return [Index::Base]
+    attr_reader :index
 
-      # @param [PgMultisearch::Indexable] type
-      # @param [Arel::Table] target
-      def initialize(type, target = Index.arel_table)
-        @type   = type
-        @target = target
-      end
+    # @!attribute [r] target
+    #   @return [ast.Table]
+    attr_reader :target
 
-      # @param [Indexable] object
-      # @param [:insert, :update] command
-      #
-      # @return [Arel::InsertManager] if command :insert
-      # @return [Arel::UpdateManager] if command :update
-      def call(object, command:)
-        case command
-        when :insert then compile_insert(compile_select(object))
-        when :update then compile_update(object)
-        end
-      end
-
-      private
-
-        # @return [Arel::Table]
-        def source
-          type.arel_table
-        end
-
-        # @return [Arel::SelectManager]
-        def compile_select(object)
-          select_manager = source.select_manager
-
-          values, content = prepare(object)
-
-          select_manager.project(
-            *content.map { |(column, value)| as(value, column) },
-            *values.map { |column, value| as(value, column) },
-            as(::Arel.sql("'#{type}'::searchable"), 'searchable_type'),
-            as(object.id, 'searchable_id')
-          )
-
-          select_manager
-        end
-
-        # @return [Arel::InsertManager]
-        def compile_insert(select_manager)
-          insert_manager = target.insert_manager
-          insert_manager.into(target)
-          insert_manager.insert(select_manager.to_sql)
-
-          select_manager.projections.each do |column|
-            insert_manager.columns << target[column.right]
-          end
-
-          insert_manager
-        end
-
-        # @return [Arel::UpdateManager]
-        def compile_update(object)
-          update_manager = ::Arel::UpdateManager.new(target.engine)
-          update_manager.table(target)
-
-          values, content = prepare(object)
-
-          searchable_type = target[:searchable_type].eq(object.class.to_s)
-          searchable_id   = target[:searchable_id].eq(object.id)
-
-          tuple = lambda do |column, value|
-            value = ::Arel.sql(value.to_sql) if value.is_a?(::Arel::Nodes::Node)
-
-            [target[column], value]
-          end
-
-          update_manager.set([*content.map(&tuple), *values.map(&tuple)])
-          update_manager.where(searchable_type.and(searchable_id))
-
-          update_manager
-        end
-
-        def prepare(object)
-          values = object.pg_search_document_attrs
-
-          yield values if block_given?
-
-          content = values.delete('content')
-
-          [values, prepare_content(content)]
-        end
-
-        def prepare_content(content)
-          content = cast_to_json(content)
-
-          %w(content dmetaphone header).map do |column|
-            fn = "pg_search_document_#{column}".to_sym
-
-            [
-              column,
-              # ::Arel::SelectManager
-              #   .new(::ActiveRecord::Base)
-              #   .project(::Arel.star)
-              #   .from(send(fn, content))
-              send(fn, content)
-            ]
-          end
-        end
-
-        def cast_to_json(object)
-          ::Arel.sql("$$#{::Oj.dump(object)}$$::jsonb")
-        end
-
-        def pg_search_document_content(content)
-          fn('pg_search_document_content', [content])
-        end
-
-        def pg_search_document_dmetaphone(content)
-          fn('pg_search_document_dmetaphone', [content])
-        end
-
-        def pg_search_document_header(content)
-          fn('pg_search_document_header', [content])
-        end
-
-        def row_to_json(row)
-          fn('row_to_json', [row])
-        end
+    # @param [PgMultisearch::Indexable] indexable
+    def initialize(indexable)
+      @type   = indexable
+      @index  = indexable.pg_multisearch_index
+      @target = ast.table(index.table_name, index) # index.arel_table
     end
+
+    # @param [Indexable] object
+    # @param [Hash] options
+    #
+    # @option [:insert, :update] options :command
+    # @option [Array<String>] options :weights
+    #
+    # @return [Arel::InsertManager] if command :insert
+    # @return [Arel::UpdateManager] if command :update
+    def call(object, command:, **options)
+      case command
+      when :insert then compile_insert(compile_select(object, options))
+      when :update then compile_update(object, options)
+      end
+    end
+
+    protected
+
+      # @return [ast.SqlLiteral]
+      def indexable_type
+        index.projection(:searchable_type)
+      end
+
+      # @return [ast.SqlLiteral]
+      def indexable_id
+        index.projection(:searchable_id)
+      end
+
+    private
+
+      # @return [ast.Table]
+      def source
+        @source ||= ast.table(type.table_name, type) # type.arel_table
+      end
+
+      # Refresh table stats after batch INSERT/UPDATE/DELETE
+      #
+      # @return [ast.SqlLiteral]
+      def analyze
+        ast.sql("ANALYZE #{target.table_name};")
+      end
+
+      # @param [ActiveRecord::Base] object
+      # @param [Hash] options
+      #
+      # @return [ast.SelectManager]
+      def compile_select(object, **options)
+        select_manager = source.select_manager
+
+        values, content = prepare(object, options)
+
+        select_manager.project(
+          *content.map { |(column, value)| ast.nodes.as(value, column) },
+          *values.map { |column, value| ast.nodes.as(value, column) },
+          ast.nodes.as(ast.sql("'#{type}'::searchable"), indexable_type),
+          ast.nodes.as(object.id, indexable_id)
+        )
+
+        select_manager
+      end
+
+      # @param [ast.SelectManager] select_manager
+      #
+      # @return [Arel::InsertManager]
+      def compile_insert(select_manager)
+        insert_manager = target.insert_manager
+        insert_manager.into(target)
+        insert_manager.insert(select_manager.to_sql)
+
+        select_manager.projections.each do |column|
+          insert_manager.columns << target[column.right]
+        end
+
+        insert_manager
+      end
+
+      # @param [ActiveRecord::Base] object
+      # @param [Hash] options
+      #
+      # @return [Arel::UpdateManager]
+      def compile_update(object, **options)
+        update_manager = ::Arel::UpdateManager.new(target.engine)
+        update_manager.table(target)
+
+        values, content = prepare(object, options)
+
+        tuple = lambda do |column, value|
+          value = ast.sql(value.to_sql) if value.is_a?(ast.Node)
+
+          [target[column], value]
+        end
+
+        update_manager.set([*content.map(&tuple), *values.map(&tuple)])
+        update_manager.where(
+          target[indexable_type].eq(object.class.to_s)
+            .and(target[indexable_id].eq(object.id))
+        )
+
+        update_manager
+      end
+
+      def prepare(object, **options)
+        values = object.pg_multisearch_document_attrs
+
+        yield values if block_given?
+
+        content = values.delete('content')
+
+        [values, prepare_content(content, **options)]
+      end
+
+      def prepare_content(content, **options)
+        content = cast_to_json(content)
+
+        index.projections(:tsearch, :dmetaphone, :trigram).map do |column|
+          fn = "pg_multisearch_document_#{column}".to_sym
+
+          [column, ast.fn.send(fn, content, options)]
+        end
+      end
+
+      def config
+        index.config
+      end
+
+      def cast_to_json(object)
+        ast.sql("$$#{::Oj.dump(object)}$$::jsonb")
+      end
+
+      def weights(weights)
+        ast.sql("'{#{Array(weights).join(',')}}'::text[]")
+      end
+
+      def pg_multisearch_content(
+        content,
+        weights: config.dig(:strategies, :tsearch, :weights) { Index.meta.weights },
+        **
+      )
+        ast.nodes.fn(
+          'pg_multisearch_content'.freeze,
+          [
+            content,
+            weights(weights)
+          ]
+        )
+      end
+
+      def pg_multisearch_dmetaphone(
+        content,
+        weights: config.dig(:strategies, :dmetaphone, :weights) { Index.meta.weights[0] },
+        **
+      )
+        ast.nodes.fn(
+          'pg_multisearch_dmetaphone'.freeze,
+          [
+            content,
+            weights(weights)
+          ]
+        )
+      end
+
+      def pg_multisearch_trigram(
+        content,
+        weights: config.dig(:strategies, :trigram, :weights) { Index.meta.weights[0] },
+        **
+      )
+        ast.nodes.fn(
+          'pg_multisearch_trigram'.freeze,
+          [
+            content,
+            weights(weights)
+          ]
+        )
+      end
   end
 end
