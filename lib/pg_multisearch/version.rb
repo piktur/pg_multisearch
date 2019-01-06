@@ -1,3 +1,3 @@
 module PgMultisearch
-  VERSION = '0.0.1'.extend(::Comparable).freeze
+  VERSION = '0.0.2'.extend(::Comparable).freeze
 end
