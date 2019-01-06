@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module PgMultisearch
-  class Railtie < Rails::Railtie
+  class Railtie < ::Rails::Railtie
     rake_tasks do
       load 'pg_multisearch/tasks.rb'
     end
@@ -10,33 +10,17 @@ module PgMultisearch
       require 'pg_multisearch/generators'
     end
 
-    config.after_initialize do
-      content, header, dmetaphone = columns = %i(
-        CONTENT_COLUMN
-        HEADER_COLUMN
-        DMETAPHONE_COLUMN
-      ).map { |const| ::PgMultisearch::Index.const_get(const, false) }
+    config.to_prepare do
+      ::PgMultisearch.unaccent_function ||= 'unaccent'.freeze
 
-      options = ::PgMultisearch.options
+      # [Index::Base, *Index::Base.descendants].each do |klass|
+      #   klass.instance_variable_remove(:@config)
+      # end
 
-      options[:against] = options[:against] | columns
+      # ::PgMultisearch.remove_instance_variable(:@config)
 
-      (options[:using] ||= {}).tap do |features|
-        (features[:tsearch] ||= {}).tap do |feature|
-          feature[:tsvector_column] = Array(feature[:tsvector_column]) | [content]
-          feature[:only] = Array(feature[:only]) | columns
-        end
-
-        (features[:dmetaphone] ||= {}).tap do |feature|
-          feature[:dictionary] ||= 'simple'
-          feature[:tsvector_column] = Array(feature[:tsvector_column]) | [dmetaphone]
-          feature[:only] = Array(feature[:only]) | [dmetaphone]
-        end
-
-        (features[:trigram] ||= {}).tap do |feature|
-          feature[:only] = Array(feature[:only]) | [header]
-        end
-      end
+      # initializer = ::Rails.root.join('config/initializers', 'pg_multisearch.rb')
+      # load(initializer) if ::File.exist?(initializer)
     end
   end
 end
