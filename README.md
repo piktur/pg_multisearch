@@ -2,7 +2,200 @@
 
 [![Build Status](https://travis-ci.com/piktur/pg_multisearch.svg?branch=master)](https://travis-ci.com/piktur/pg_multisearch)
 
-PgMultisearch extends [pg_search](https://github.com/Casecommons/pg_search) providing better support for multi table search index.
+PgMultisearch extends [pg_search](https://github.com/Casecommons/pg_search) providing better support for multi table search indices.
+
+## Install
+
+### Rails
+
+```bash
+  bin/rails g pg_multisearch:install Search \
+  --types Organisation Product Interview Post Move Person \
+  --use '{ "age": { "column": "provenance" }, "document": { "index": true }, "suggestions": true }'
+```
+
+## Configuration
+
+```ruby
+# config/initializers/pg_multisearch.rb
+
+require 'pg_multisearch'
+
+# Configure defaults. Defaults will be applied to each scope when missing.
+PgMultisearch.configure do |defaults, index|
+  plugin(:document)
+  plugin(:suggestions)
+  plugin(:age, column: 'provenance')
+
+  defaults.against            = index.projections(:tsearch, :date, :dmetaphone, :trigram)
+  defaults.ignoring           = :accents
+  defaults.prepared_statement = true
+  defaults.strategies do |strategies|
+    strategies.age do |age|
+      age.only = index.projections(:date)
+    end
+
+    strategies.dmetaphone do |dmetaphone|
+      dmetaphone.any_word         = false
+      dmetaphone.dictionary       = 'simple'
+      dmetaphone.negation         = true
+      dmetaphone.normalization    = 32
+      dmetaphone.only             = index.projections(:dmetaphone)
+      dmetaphone.prefix           = true
+      dmetaphone.tsquery_function = :to_tsquery
+      dmetaphone.tsrank_function  = :ts_rank
+      dmetaphone.tsvector_column  = index.projections(:dmetaphone)
+      dmetaphone.weights          = index.weights[0]
+    end
+
+    strategies.trigram do |trigram|
+      trigram.word_similarity = false
+    end
+
+    strategies.tsearch do |tsearch|
+      tsearch.any_word         = false
+      tsearch.dictionary       = 'english'
+      tsearch.negation         = true
+      tsearch.normalization    = 32
+      tsearch.only             = index.projections(:tsearch)
+      tsearch.prefix           = true
+      tsearch.tsquery_function = :to_tsquery
+      tsearch.tsrank_function  = :ts_rank
+      tsearch.tsvector_column  = index.projections(:tsearch)
+    end
+  end
+end
+
+# Configure `PgMultisearch::Index` scopes
+Search.configure do |config, index| # rubocop:disable BlockLength
+  # The default scope
+  config.search do |scope|
+    scope.filter_by do |filter|
+      filter.primary   = index.strategy(:tsearch)
+      filter.secondary = index.strategy(:dmetaphone) # :trigram
+    end
+
+    scope.rank_by do |rank|
+      # Calculates the average of three scores
+      rank.primary   = index.strategy(:tsearch)
+      rank.secondary = index.strategy(:trigram)
+      rank.tertiary  = index.strategy(:dmetaphone)
+
+      # Refine the result set
+      rank.threshold = 0.3
+
+      # Apply rules per Indexable type
+      rank.polymorphic = {
+        # Ranks non qualified types by age (according to a date stored within the configured date column)
+        :default                  => index.strategy(:age),
+        # Calculates the average of two scores for records of type Organisation and Person
+        [%w(Organisation Person)] => index.strategies(
+          :tsearch, # primary
+          :trigram  # secondary
+        )
+      }
+    end
+
+    scope.strategies do |strategies|
+      strategies.age do |age|
+
+      end
+
+      strategies.tsearch do |tsearch|
+        tsearch.highlight do |highlight|
+          # Build the highlightable document from the denormalized data
+          highlight.document do |strategy, ast, table|
+            ast.fn.jsonb_fields_to_text(table[index.projection(:data)], ['field1', 'field2'])
+          end
+          # Or specify the fields to use
+          highlight.fields         = %w(title overview)
+          highlight.min_words      = 15
+          highlight.max_words      = 35
+          highlight.max_fragments  = 0
+          highlight.short_words    = 3
+          highlight.start_sel      = '<b>'
+          highlight.stop_sel       = '</b>'
+        end
+      end
+    end
+  end
+
+  # Configure suggestions
+  config.suggestions do |scope|
+    scope.filter_by do |filter|
+      filter.primary = index.strategy(:dmetaphone) # index.strategy(:trigram)
+    end
+
+    scope.rank_by do |rank|
+      rank.primary = index.strategy(:dmetaphone) # index.strategy(:trigram)
+    end
+
+    scope.strategies do |strategies|
+      strategies.dmetaphone do |dmetaphone|
+        dmetaphone.any_word = true
+        dmetaphone.prefix   = true
+      end
+
+      strategies.trigram do |trigram|
+        trigram.word_similarity = true
+      end
+    end
+  end
+end
+```
+
+## Example
+
+```ruby
+  class Search
+    include ::PgMultisearch::Search
+  end
+
+  params  = {
+    'search' => 'query',
+    'type' => 'Organisation'
+  }
+  options = {
+    preload:   true,
+    threshold: 0.6,
+    weights:   %w(A B)
+  }
+
+  # Initialize the Search delegator
+  search = Search.call(options) # #<Search>
+
+  # Call with request paramters and options
+  search.call(params, options)
+
+  search.call(params, scope_name: :suggestions)
+
+  # Apply further refinements to the scope
+  search.call(params) do |current_scope, builder|
+    current_scope
+      .where(%{ data @> '{"name":"von"}'::jsonb })
+      .page(page)
+  end
+
+  # Materialize the relation
+  search.to_a
+
+  search.call(params, scope_name: :suggestions, limit: 10).to_a
+
+  # or Handle loading yourself
+  search.load do |relation|
+    relation.connection.select_values(relation.arel.to_sql, relation.klass, bind_params)
+
+    # or
+
+    res = relation.connection.execute(relation.arel.to_sql)
+    tuples = res.values
+    res.clear
+    tuples
+  end
+
+```
+
+## [TODO](TODO.md)
 
 ## Development
 
