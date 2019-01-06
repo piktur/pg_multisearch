@@ -1,8 +1,8 @@
-CREATE OR REPLACE FUNCTION pg_search_document_dmetaphone(
+CREATE OR REPLACE FUNCTION pg_multisearch_dmetaphone(
   jsonb,
   text[] default ARRAY['A']
 )
-RETURNS tsvector IMMUTABLE AS $$
+RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
 DECLARE
   weight text;
   t record;
@@ -19,8 +19,17 @@ BEGIN
         codes := codes || ' ' || string_to_dmetaphone(data ->> t.key);
       END IF;
     END LOOP;
+
+    tsvector := tsvector || setweight(
+      dmetaphone_to_tsvector(
+        quote_literal(
+          trim(leading ' ' from codes)
+        )
+      ),
+      weight::"char"
+    );
   END LOOP;
 
-  RETURN dmetaphone_to_tsvector(quote_literal(trim(leading ' ' from codes)));
+  RETURN tsvector;
 END
 $$ LANGUAGE plpgsql;

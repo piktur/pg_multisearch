@@ -1,12 +1,14 @@
-CREATE OR REPLACE FUNCTION pg_search_document_content(jsonb)
-RETURNS tsvector IMMUTABLE AS $$
+CREATE OR REPLACE FUNCTION pg_multisearch_content(
+  jsonb,
+  text[] default ARRAY['A','B','C','D']
+)
+RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
 DECLARE
   weight text;
-  weights text[] := ARRAY['A','B','C','D'];
   tsvector tsvector := ''::tsvector;
   filter jsonb := '["string"]'::jsonb;
 BEGIN
-  FOREACH weight IN ARRAY weights LOOP
+  FOREACH weight IN ARRAY $2 LOOP
     tsvector := tsvector || setweight(
       jsonb_to_tsvector(
         get_current_ts_config(),

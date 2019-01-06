@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION pg_search_words(
+CREATE OR REPLACE FUNCTION pg_multisearch_words(
   jsonb,
   text[] default ARRAY['A'],
   bool default TRUE
 )
-RETURNS text IMMUTABLE AS $$
+RETURNS text STABLE PARALLEL SAFE STRICT AS $$
 DECLARE
   weight text;
   tsv tsvector := ''::tsvector;

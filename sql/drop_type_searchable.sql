@@ -1,1 +1,1 @@
-DROP TYPE searchable;
+DROP TYPE %{ruby};
