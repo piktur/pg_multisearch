@@ -2,25 +2,30 @@
 
 module PgMultisearch
   # Denormalization avoids unnecessary joins and should improve query performance significantly.
-  # Use {Document::base} to decorate results and avoid ActiveRecord bloat.
+  # Use {Document::Base} to decorate results and avoid `ActiveRecord` bloat.
   #
   # | Column     | Type     | Description                                                         |
   # |------------|----------|---------------------------------------------------------------------|
   # | content    | tsvector | An aggregation of searchable attributes grouped by weight           |
-  # | header     | text     |                                                                     |
+  # | trigram    | text     |                                                                     |
+  # | dmetaphone | text     |                                                                     |
   # | data       | jsonb    | A denormalized copy of the data necessary to render a result (JSON) |
   module Document
     extend ::ActiveSupport::Autoload
 
     autoload :AsDocument, 'pg_multisearch/plugins/document/as_document'
     autoload :Base,       'pg_multisearch/plugins/document/base'
-    autoload :Rebuilder,  'pg_multisearch/plugins/document/rebuilder'
+    autoload :Index,      'pg_multisearch/plugins/document/index'
+    autoload :Indexable,  'pg_multisearch/plugins/document/indexable'
+    autoload :Search,     'pg_multisearch/plugins/document/search'
 
     extend Plugin
 
-    DATA_COLUMN = 'data'
-
     class << self
+      def plugin_name
+        :document
+      end
+
       # @example
       #   Search::Document[Person]
       #
@@ -46,15 +51,11 @@ module PgMultisearch
 
       def apply(*) # rubocop:disable MethodLength
         super do
-          %w(
-            builder
-            indexable
-            loader
-            scope
-          ).each { |f| require_relative "./document/#{f}.rb" }
-
-          ::PgMultisearch::Indexable.extend Indexable
-          ::PgMultisearch::Index.extend Scope
+          ::PgMultisearch::Index::Base.projections[:data] = 'data'
+          ::PgMultisearch::Index::Base.extend(Index::Scopes)
+          ::PgMultisearch::Index::Base.include(Index::AsDocument)
+          ::PgMultisearch::Indexable.extend(Indexable)
+          ::PgMultisearch::Search.prepend(Search)
         end
       end
     end

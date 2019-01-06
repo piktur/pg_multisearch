@@ -18,7 +18,7 @@ module PgMultisearch
     # @param [Hash] options
     #
     # @return [void]
-    def use(plugin, *args, &block)
+    def plugin(plugin, *args, &block)
       plugin = plugins[plugin]
 
       case plugin
@@ -29,13 +29,14 @@ module PgMultisearch
 
       true
     end
+    alias use plugin
 
     # @param [Symbol] plugin
     # @param [Module, String, Symbol, Proc] object
     #
     # @return [void]
     def register(plugin, object = nil, &block)
-      plugins[plugin] = object || block
+      plugins[plugin] = (object || block)
 
       true
     end
@@ -47,7 +48,7 @@ module PgMultisearch
       end
 
       def handle_name(plugin, *args, &block)
-        const  = ::ActiveSupport::Inflector.camelize(plugin)
+        const  = ::PgMultisearch.inflector.camelize(plugin)
         plugin = ::Object.const_get(const)
 
         handle_module(plugin, *args, &block)

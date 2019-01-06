@@ -23,11 +23,12 @@ module PgMultisearch::Document
     module ClassMethods
       # @param [Hash, String] data
       # @param [Float] rank
+      # @param [String] highlight
       #
-      # @return [Search::Document]
+      # @return [Base]
       #   An immutable struct containing the denormalized `input`
-      def to_document(data, rank)
-        self::Document.new(data, rank)
+      def to_document(data, rank = 0.0, highlight = nil)
+        self::Document.new(data, rank, highlight)
       end
     end
 
@@ -36,14 +37,20 @@ module PgMultisearch::Document
       self.class.to_document(data, rank)
     end
 
+    # @yieldparam [Hash{String=>Object}]
+    #   Yields a Hash containing the default fields to the block
+    #
+    # @see Indexable#searchable_text
+    #
     # @return [Hash] The denormalized document content
     def as_document
       {
-        '__id__'   => id,
-        '__type__' => self.class.to_s
+        '__id__'.freeze   => id,
+        '__type__'.freeze => self.class.to_s
       }.tap do |doc|
-        doc['slug'] = slug if respond_to?(:slug)
-        block_given? && (yield doc).each { |attr, val| doc[attr.to_s] = val }
+        doc['slug'.freeze] = slug if respond_to?(:slug)
+
+        block_given? && yield(doc).each { |attr, val| doc[attr.to_s] = val }
       end
     end
   end

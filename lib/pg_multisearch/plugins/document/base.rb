@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-# A Document is a lightweight data struct. It encapsulates denormalized data and
-# performs type coercion necessary to render a {Search#result}.
-#
-# A Document SHOULD implement all attributes and methods of the represented {#model}
-# to be called within a view; the view SHOULD NOT be aware of the difference between a Document
-# and an ActiveRecord.
 module PgMultisearch
+  # A Document is a lightweight data struct. It encapsulates denormalized data and
+  # performs type coercion necessary to render a {Search#result}.
+  #
+  # A Document SHOULD implement all attributes and methods of the represented {#model}
+  # to be called within a view; the view SHOULD NOT be aware of the difference between a Document
+  # and an ActiveRecord.
   module Document::Base
     def self.included(base)
       base.include ::ActiveModel::Conversion
@@ -24,18 +24,20 @@ module PgMultisearch
       attr_reader :attribute_names
 
       # @!attribute [r] rank
-      #   @return [Rank]
+      #   @return [Float]
       attr_accessor :rank
 
       # @param [Hash, String] attributes
       # @param [Float] rank
-      def initialize(attributes = EMPTY_HASH, rank = 0.0)
+      # @param [String] highlight
+      def initialize(attributes = EMPTY_HASH, rank = 0.0, highlight = nil)
         attributes = case attributes
         when ::String then ::Oj.load(attributes, symbol_keys: true)
         when ::Hash   then attributes.deep_symbolize_keys
         end
 
-        attributes[:__id__] = attributes[:__id__].to_i
+        attributes[:__id__]        = attributes[:__id__].to_i
+        attributes[:__highlight__] = highlight
 
         super(attributes, rank.to_f)
 
@@ -72,6 +74,11 @@ module PgMultisearch
       # @return [String, #__id__]
       def slug
         attributes[:slug] || __id__
+      end
+
+      # @return [String]
+      def highlight
+        attributes[:__highlight__]
       end
 
       # @return [.model]

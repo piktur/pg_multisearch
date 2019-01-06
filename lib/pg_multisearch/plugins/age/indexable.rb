@@ -8,16 +8,13 @@ module PgMultisearch
         #
         # @return [Hash]
         def call(record)
-          { attribute => Indexable.normalize(record.send(attribute)) }
+          { (attribute = attribute(record)) => Indexable.normalize(record.send(attribute)) }
         end
 
         # @return [String]
-        def attribute
-          %i(using age only).reduce(::PgMultisearch.options) do |h, k|
-            h.fetch(k) { Age::DATE_COLUMN }
-          end
+        def column(record)
+          record.pg_multisearch_index.projection(:date)
         end
-        alias column attribute
 
         # @param [Integer, Date, DateTime] value
         #   A date value indicative of a searchable record's *contemporaneity*.
@@ -34,7 +31,7 @@ module PgMultisearch
       end
 
       def included(base)
-        base.pg_multisearch_options[:additional_attributes] << Indexable.method(:call)
+        base.pg_multisearch_options.additional_attributes << Indexable.method(:call)
 
         super
       end

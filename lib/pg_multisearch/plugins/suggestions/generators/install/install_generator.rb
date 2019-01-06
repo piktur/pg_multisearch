@@ -18,7 +18,9 @@ module PgMultisearch::Suggestions::Generators
         <<-RUBY
 
   def suggestions(**options)
-    model.suggestions(query, options).load
+    super do |current_scope, builder|
+      # apply further scope refinements here
+    end
   end
         RUBY
       end
