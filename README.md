@@ -11,7 +11,7 @@ PgMultisearch extends [pg_search](https://github.com/Casecommons/pg_search) prov
 ```bash
   bin/rails g pg_multisearch:install Search \
   --types Organisation Product Interview Post Move Person \
-  --use '{ "age": { "column": "provenance" }, "document": { "index": true }, "suggestions": true }'
+  --use '{ "age": { "column": "provenance" }, "document": { "index": true } }'
 ```
 
 ## Configuration
@@ -194,6 +194,10 @@ end
   end
 
 ```
+
+## Index
+
+Rebuild `bin/rake pg_multisearch:rebuild[model,schema]`
 
 ## [TODO](TODO.md)
 

@@ -47,8 +47,7 @@ module PgMultisearch::Generators
         create_function_pg_multisearch_words
         create_function_string_to_dmetaphone
         create_function_tsvector_to_array
-        create_index_pg_multisearch_index_trigram
-        create_index_pg_multisearch_index_suggestions
+        create_index_pg_multisearch_trigram
         drop_function_dmetaphone_to_tsquery
         drop_function_dmetaphone_to_tsvector
         drop_function_jsonb_fields_to_text

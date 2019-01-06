@@ -1,7 +1,8 @@
 class CreatePgMultisearchIndex < ActiveRecord::Migration
   def up
     <%= load_migration('create_pg_search_documents') %>
-    ::CreatePgSearchDocuments.migrate(:down) if defined?(::CreatePgSearchDocuments)
+    ::CreatePgSearchDocuments.migrate(:down) if defined?(::CreatePgSearchDocuments) &&
+      connection.table_exists?(:pg_search_documents)
 
     create_table :<%= table_name %>
 
@@ -60,13 +61,13 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     SQL
 
     execute <<-SQL.strip
-<%= create_index_pg_multisearch_index_trigram %>
+<%= create_index_pg_multisearch_trigram %>
     SQL
   end
 
   def down
-    remove_index :<%= table_name %> :content
-    remove_index :<%= table_name %> name: :pg_multisearch_index_trigram_idx
+    remove_index :<%= table_name %>, :content
+    remove_index :<%= table_name %>, name: :pg_multisearch_index_trigram_idx
 
     drop_table :<%= table_name %>
 

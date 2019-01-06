@@ -138,14 +138,16 @@ module PgMultisearch
         content = cast_to_json(content)
 
         index.projections(:tsearch, :dmetaphone, :trigram).map do |column|
-          fn = "pg_multisearch_document_#{column}".to_sym
+          fn = "pg_multisearch_#{column}".to_sym
 
-          [column, ast.fn.send(fn, content, options)]
+          [column, send(fn, content, options)] # ast.fn.send(fn, content, options)
         end
       end
 
+      # @todo Reconsider configuration object to refence; should we use the global config or that
+      #   of the {#index}?
       def config
-        index.config
+        index.config.search
       end
 
       def cast_to_json(object)

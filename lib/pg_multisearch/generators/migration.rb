@@ -10,6 +10,11 @@ module PgMultisearch::Generators
 
     private
 
+      # @todo Add option to configure table name
+      def table_name
+        'pg_multisearch_index'
+      end
+
       def timestamp(adjust = false)
         time = (adjust ? 1.second.from_now : ::Time.now).utc
         str  = time.strftime('%Y%m%d%H%M%S')

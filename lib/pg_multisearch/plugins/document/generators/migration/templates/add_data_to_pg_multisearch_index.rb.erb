@@ -1,13 +1,13 @@
 class AddDataToPgMultisearchIndex < ActiveRecord::Migration
   def up
-    add_column :pg_multisearch_documents, :data, :jsonb
+    add_column :<%= table_name %>, :data, :jsonb
 <% if options[:index] -%>
-    add_index :pg_multisearch_documents, :data, using: :gin
+    add_index :<%= table_name %>, :data, using: :gin
 <% end -%>
   end
 
   def down
-    remove_column :pg_multisearch_documents, :data
-    remove_index :pg_multisearch_document, :data if index_exists?(:pg_multisearch_document, :data)
+    remove_column :<%= table_name %>, :data
+    remove_index :<%= table_name %>, :data if index_exists?(:<%= table_name %>, :data)
   end
 end

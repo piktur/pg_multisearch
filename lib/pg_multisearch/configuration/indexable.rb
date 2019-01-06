@@ -79,6 +79,8 @@ module PgMultisearch
       # @param [Symbol] method
       # @param [Proc] block
       def include_if(method = nil, &block)
+        return self[__callee__] if frozen?
+
         self[__callee__] << (method && method.to_sym || block)
       end
       alias_method :exclude_if, :include_if

@@ -49,8 +49,10 @@ module PgMultisearch
 
       attr_reader :indexable
 
+      attr_reader :index
+
       def conditional?
-        %i(if unless).any? { |key| indexable.pg_multisearch_options.key?(key) }
+        %i(include_if exclude_if).any? { |key| indexable.pg_multisearch_options[key].present? }
       end
 
       def dynamic?

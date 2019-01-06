@@ -1,11 +1,11 @@
 class AddDateToPgMultisearchIndex < ActiveRecord::Migration
   def up
-    add_column :pg_multisearch_documents, :<%= options[:column] %>, :datetime
-    add_index  :pg_multisearch_documents, :<%= options[:column] %>
+    add_column :<%= table_name %>, :<%= options[:column] %>, :datetime
+    add_index  :<%= table_name %>, :<%= options[:column] %>
   end
 
   def down
-    remove_index  :pg_multisearch_documents, :<%= options[:column] %>
-    remove_column :pg_multisearch_documents, :<%= options[:column] %>
+    remove_index  :<%= table_name %>, :<%= options[:column] %>
+    remove_column :<%= table_name %>, :<%= options[:column] %>
   end
 end

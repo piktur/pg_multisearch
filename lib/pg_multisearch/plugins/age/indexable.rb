@@ -8,7 +8,7 @@ module PgMultisearch
         #
         # @return [Hash]
         def call(record)
-          { (attribute = attribute(record)) => Indexable.normalize(record.send(attribute)) }
+          { (attribute = column(record)) => Indexable.normalize(record.send(attribute)) }
         end
 
         # @return [String]

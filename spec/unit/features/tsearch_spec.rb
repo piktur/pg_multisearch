@@ -4,7 +4,7 @@ require 'rails_helper'
 require 'pg_multisearch/strategies/tsearch'
 
 RSpec.describe PgMultisearch::Strategies::Tsearch do
-  with_table "pg_multisearch_documents", {}, &DOCUMENTS_SCHEMA
+  with_table "pg_multisearch_index", {}, &DOCUMENTS_SCHEMA
 
   with_model :Searchable do
     model do
