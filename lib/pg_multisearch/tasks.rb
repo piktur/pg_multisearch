@@ -3,11 +3,11 @@
 require 'rake'
 require 'pg_multisearch'
 
-Rake::Task['pg_search:multisearch:rebuild'].clear
+# Rake::Task['pg_search:multisearch:rebuild'].clear
 
 namespace :pg_multisearch do
   desc 'Rebuild PgMultisearch document(s) for the given model'
-  task :rebuild, [:model, :schema] => :environment do |_task, args|
+  task :rebuild, %i(model schema) => :environment do |_task, args|
     args  = args.to_hash
     model = args.fetch(:model) do
       msg = 'You have not specified a model. Do you want to reindex ALL searchable types? (y/n)'
@@ -25,6 +25,6 @@ namespace :pg_multisearch do
       end
     end
 
-    ::PgMultisearch.rebuild!(model, schema: args[:schema])
+    PgMultisearch.rebuild!(model, schema: args[:schema])
   end
 end
