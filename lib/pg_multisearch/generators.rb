@@ -8,4 +8,5 @@ require 'rails/generators/base'
   migration
   install/install_generator
   migration/index_generator
+  rebuild/rebuild_generator
 ).each { |f| require_relative "./generators/#{f}.rb" }

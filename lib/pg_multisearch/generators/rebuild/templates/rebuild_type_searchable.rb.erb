@@ -1,0 +1,45 @@
+class RebuildTypeSearchable < ActiveRecord::Migration
+  def up
+    alias_existing
+
+    execute <<-SQL.strip
+<%= create_type(new_values) %>
+    SQL
+
+    alter_typed_columns
+
+    drop_alias
+  end
+
+  def down
+    alias_existing
+
+    execute <<-SQL.strip
+<%= create_type(old_values) %>
+    SQL
+
+    alter_typed_columns
+
+    drop_alias
+  end
+
+  private
+
+    def alias_existing
+      execute <<-SQL.strip
+<%= alias_existing %>
+      SQL
+    end
+
+    def alter_typed_columns
+      execute <<-SQL.strip
+<%= alter_typed_columns %>
+      SQL
+    end
+
+    def drop_alias
+      execute <<-SQL.strip
+<%= drop_alias %>
+      SQL
+    end
+end

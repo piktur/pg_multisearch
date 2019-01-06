@@ -9,7 +9,13 @@ module PgMultisearch
 
       source_root ::File.expand_path('templates', __dir__)
 
-      argument(:name, type: :string, default: 'Search')
+      argument(
+        :name,
+        type:    :string,
+        default: 'Search',
+        banner:  'NAME',
+        desc:    ''
+      )
 
       class_option(
         :use,
@@ -25,7 +31,7 @@ module PgMultisearch
         required: true,
         aliases:  '-t',
         banner:   '[ARRAY[STRING,]]',
-        desc:     'A list of searchable Model(s)'
+        desc:     'A list of indexable Model(s)'
       )
 
       def self.plugins

@@ -2,8 +2,6 @@
 
 module PgMultisearch::Generators
   class Migration < ::Rails::Generators::Base
-    hide!
-
     def create_migration
       filename = "#{timestamp}_#{migration_name}.rb"
 
@@ -41,7 +39,7 @@ module PgMultisearch::Generators
       end
 
       def inflector
-        ::ActiveSupport::Inflector
+        ::PgMultisearch.inflector
       end
   end
 end

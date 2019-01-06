@@ -3,7 +3,6 @@
 
 module PgMultisearch::Generators
   module Install
-
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -17,18 +16,22 @@ module PgMultisearch::Generators
     private
 
       def add_plugin_to_initializer(plugin, args = nil)
-        append_to_file(
+        inject_into_file(
           initializer_path,
-          "PgMultisearch.use(:#{plugin}#{args ? ", #{args}": nil})\n"
-        )
+          after: "PgMultisearch.configure do |options|\n"
+        ) do
+          <<-RUBY
+"  plugin(:#{plugin}#{args ? ", #{args}": nil})\n"
+          RUBY
+        end
       end
 
       def inflector
-        ::ActiveSupport::Inflector
+        ::PgMultisearch.inflector
       end
 
       def initializer_path
-        ::File.expand_path('config/initializers/pg_search.rb', ::Rails.root)
+        ::File.expand_path('config/initializers/pg_multisearch.rb', ::Rails.root)
       end
 
       def model_name

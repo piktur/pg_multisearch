@@ -3,27 +3,32 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     <%= load_migration('create_pg_search_documents') %>
     ::CreatePgSearchDocuments.migrate(:down) if defined?(::CreatePgSearchDocuments)
 
-    create_table :pg_search_documents
+    create_table :<%= table_name %>
 
     execute <<-SQL.strip
 <%= create_type_searchable %>
     SQL
 
-    add_column :pg_search_documents, :content, :tsvector
-    add_column :pg_search_documents, :dmetaphone, :tsvector
-    add_column :pg_search_documents, :header, :text, limit: 255
-    add_column :pg_search_documents, :searchable_type, :searchable, null: false, limit: 15
-    add_column :pg_search_documents, :searchable_id, :integer, null: false
+    add_column :<%= table_name %>, :content, :tsvector
+    add_column :<%= table_name %>, :dmetaphone, :tsvector
+    add_column :<%= table_name %>, :trigram, :text
+    add_column :<%= table_name %>, :searchable_type, :searchable, null: false, limit: 15
+    add_column :<%= table_name %>, :searchable_id, :integer, null: false
 
-    add_index :pg_search_documents, %i(searchable_type searchable_id), unique: true
-    add_index :pg_search_documents, :content, using: :gin
+    add_index :<%= table_name %>, %i(searchable_type searchable_id), unique: true
+    add_index :<%= table_name %>, :content, using: :gin
+    add_index :<%= table_name %>, :dmetaphone, using: :gin
 
-    <%= postgresql_version('<', 96000) %> && execute(<<-SQL.strip)
+    <%= postgresql_version('<', 96_000) %> && execute(<<-SQL.strip)
 <%= create_function_tsvector_to_array %>
     SQL
 
-    <%= postgresql_version('<', 110000) %> && execute(<<-SQL.strip)
+    <%= postgresql_version('<', 110_000) %> && execute(<<-SQL.strip)
 <%= create_function_jsonb_to_tsvector %>
+    SQL
+
+    execute(<<-SQL.strip)
+<%= create_function_jsonb_fields_to_text %>
     SQL
 
     execute <<-SQL.strip
@@ -39,46 +44,46 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     SQL
 
     execute <<-SQL.strip
-<%= create_function_pg_search_words %>
+<%= create_function_pg_multisearch_words %>
     SQL
 
     execute <<-SQL.strip
-<%= create_function_pg_search_document_content %>
+<%= create_function_pg_multisearch_content %>
     SQL
 
     execute <<-SQL.strip
-<%= create_function_pg_search_document_dmetaphone %>
+<%= create_function_pg_multisearch_dmetaphone %>
     SQL
 
     execute <<-SQL.strip
-<%= create_function_pg_search_document_header %>
+<%= create_function_pg_multisearch_trigram %>
     SQL
 
     execute <<-SQL.strip
-<%= create_index_pg_search_documents_header %>
+<%= create_index_pg_multisearch_index_trigram %>
     SQL
   end
 
   def down
-    remove_index :pg_search_documents, :content
-    remove_index :pg_search_documents, name: :pg_search_documents_header_idx
+    remove_index :<%= table_name %> :content
+    remove_index :<%= table_name %> name: :pg_multisearch_index_trigram_idx
 
-    drop_table :pg_search_documents
+    drop_table :<%= table_name %>
 
     execute <<-SQL.strip
-<%= drop_function_pg_search_document_header %>
+<%= drop_function_pg_multisearch_trigram %>
     SQL
 
     execute <<-SQL.strip
-<%= drop_function_pg_search_document_dmetaphone %>
+<%= drop_function_pg_multisearch_dmetaphone %>
     SQL
 
     execute <<-SQL.strip
-<%= drop_function_pg_search_document_content %>
+<%= drop_function_pg_multisearch_content %>
     SQL
 
     execute <<-SQL.strip
-<%= drop_function_pg_search_words %>
+<%= drop_function_pg_multisearch_words %>
     SQL
 
     execute <<-SQL.strip
@@ -93,11 +98,15 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
 <%= drop_function_string_to_dmetaphone %>
     SQL
 
-    <%= postgresql_version('<', 110000) %> && execute(<<-SQL.strip)
-<%= drop_function_jsonb_to_tsvector%>
+    execute(<<-SQL.strip)
+<%= drop_function_jsonb_fields_to_text %>
     SQL
 
-    <%= postgresql_version('<', 96000) %> && execute(<<-SQL.strip)
+    <%= postgresql_version('<', 110_000) %> && execute(<<-SQL.strip)
+<%= drop_function_jsonb_to_tsvector %>
+    SQL
+
+    <%= postgresql_version('<', 96_000) %> && execute(<<-SQL.strip)
 <%= drop_function_tsvector_to_array %>
     SQL
 
