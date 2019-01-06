@@ -8,6 +8,7 @@ Style/Documentation:
   EnforcedStyle: always
 
 Style/ClassAndModuleChildren:
+  Enabled: false
   EnforcedStyle: nested
   AutoCorrect: false
 
@@ -41,6 +42,7 @@ Rails:
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*'
+    - 'lib/pg_multisearch/configuration/**/*'
 
 Metrics/LineLength:
   Exclude:
@@ -72,3 +74,16 @@ Layout/MultilineMethodCallIndentation:
 
 Lint/MissingCopEnableDirective:
   Enabled: false
+
+Naming/UncommunicativeMethodParamName:
+  MinNameLength: 2
+  AllowNamesEndingInNumbers: true
+  AllowedNames:
+    - fn
+
+Layout/IndentationConsistency:
+  EnforcedStyle: rails
+
+Layout/AlignHash:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
