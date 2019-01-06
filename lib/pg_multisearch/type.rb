@@ -1,11 +1,20 @@
 # frozen_string_literal: true
 
-# @!attribute [r] klass
-#   @return [ActiveRecord::Base]
-# @!attribute [r] index
-#   @return [Integer]
 module PgMultisearch
-  Type = Struct.new(:klass, :index) do
+  class Type < ::Object
+    # @!attribute [r] klass
+    #   @return [ActiveRecord::Base]
+    attr_reader :klass
+
+    # @!attribute [r] index
+    #   @return [Integer]
+    attr_reader :index
+
+    def initialize(klass, index)
+      @klass = klass
+      @index = index
+    end
+
     # @return [String]
     def human(count: 2)
       klass.model_name.human(count: count)
@@ -13,10 +22,11 @@ module PgMultisearch
 
     # @return [String]
     def to_s
-      klass.to_s
+      klass.name
     end
+    alias to_str to_s
 
-    alias_method :to_i, :index
+    alias to_i index
 
     def inspect
       "#<Type[#{self}] index=#{to_i}>"

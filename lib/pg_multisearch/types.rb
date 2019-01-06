@@ -3,13 +3,24 @@
 module PgMultisearch
   # An ordered set indexing searchable types
   class Types < ::Object
+    class InvalidTypeError < ::StandardError
+      def initialize(types, type)
+        @types = types
+        @type  = type
+      end
+
+      def message
+        "#{@types.inspect} does not include `#{@type}`"
+      end
+    end
+
     include ::Enumerable
 
     # @!attribute [r] types
     #   @return [Array<Type>]
     attr_reader :types
 
-    # @param [Array<ActiveRecord::Base>] args A list of searchable models
+    # @param [Array<ActiveRecord::Base>] args A list of indexable models
     def initialize(*args)
       @types = args
         .map
@@ -30,12 +41,15 @@ module PgMultisearch
     #
     # @return [Type]
     def [](input)
-      case input
-      when ::Integer then types[input]
-      when ::String then find { |t| t.to_s == input }
-      when ::ActiveRecord::Base then find { |t| t.klass == input }
-      else raise ::IndexError.new("#{inspect} does not include `#{input}`")
+      type = case input
+      when ::Integer  then types[input]
+      when /^[\d]+$/  then types[input.to_i]
+      when ::String   then find { |t| t.to_s == input }
+      when Indexable  then find { |t| t.klass == input }
+      else raise InvalidTypeError.new(self, input)
       end
+
+      type || raise(InvalidTypeError.new(self, input))
     end
 
     def eql?(other)
