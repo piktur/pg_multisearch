@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
-require 'pg_multisearch/features/tsearch'
+require 'pg_multisearch/strategies/tsearch'
 
-RSpec.describe PgMultisearch::Features::TSearch do
-  with_table "pg_search_documents", {}, &DOCUMENTS_SCHEMA
+RSpec.describe PgMultisearch::Strategies::Tsearch do
+  with_table "pg_multisearch_documents", {}, &DOCUMENTS_SCHEMA
 
   with_model :Searchable do
     model do
@@ -23,13 +23,13 @@ RSpec.describe PgMultisearch::Features::TSearch do
   end
 
   # before do
-  #   PgSearch.multisearch_options = {
-  #     using: {
+  #   PgMultisearch.config = {
+  #     strategies: {
   #       age: {
   #         date_column: 'provenance'
   #       }
   #     },
-  #     ranked_by: ':age'
+  #     rank_by: ':age'
   #   }
   # end
 
@@ -37,15 +37,15 @@ RSpec.describe PgMultisearch::Features::TSearch do
 
   let(:query) { 'query' }
   let(:content) { [query, Faker::Lorem.sentence].join(' ') }
-  let(:options) { config.feature_options[:age] }
+  let(:options) { config.strategies[:age] }
   let(:config) { PgMultisearch::Configuration.new(options_proc.call(query), Document) }
   let(:options_proc) do
-    ->(query) { { query: query, against: :content }.merge(PgSearch.multisearch_options) }
+    ->(query) { { query: query, against: :content }.merge(PgMultisearch.config) }
   end
-  let(:normalizer) { PgSearch::Normalizer.new(config) }
+  let(:normalizer) { PgMultisearch::Strategies::Normalizer.new(config) }
   let(:columns) do
     [
-      PgSearch::Configuration::Column.new(:content, nil, Document),
+      PgMultisearch::Configuration::Column.new(:content, nil, Document),
     ]
   end
   let(:actual) { subject.rank.to_sql }
