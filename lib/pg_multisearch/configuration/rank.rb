@@ -27,7 +27,7 @@ module PgMultisearch
       #   config.calculation = ->(*args) { args.map(n) { |n| n / (n + 1) }.sum / args.length }
       #
       # @param [Symbol, Proc] fn
-      #s
+      #
       # @see Index::Relation::Rank#calc
       # @see Adapters::AST#math
       def calculation=(fn)
