@@ -145,7 +145,7 @@ module PgMultisearch
       search_params(params[:search])
       page_params(params[:page])
 
-      send(scope_name, &block)
+      send(scope_name, &block) if respond_to?(scope_name)
 
       self
     end
