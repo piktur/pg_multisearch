@@ -26,7 +26,6 @@ module PgMultisearch
           obj.tsrank_function  = :ts_rank
           obj.tsvector_column  = __meta__.projections(:tsearch)
           obj.weights          = __meta__.weights
-          obj.highlight
         end
 
         def only=(arr)
@@ -64,7 +63,7 @@ module PgMultisearch
 
         def to_hash
           super.tap do |h|
-            h[:highlight] = self[:highlight].to_h
+            h[:highlight] = self[:highlight].to_h if self[:highlight]
           end
         end
         alias_method :to_h, :to_hash
