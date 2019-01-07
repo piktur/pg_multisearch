@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION string_to_dmetaphone(text)
-RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
+RETURNS text IMMUTABLE PARALLEL SAFE AS $$ -- STRICT
 DECLARE
   t text;
   r text := '(\w+)(?:[\s:]?[\*]?[A-D]*)'; -- (?:[\s\!]?)
