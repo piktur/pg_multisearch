@@ -125,12 +125,21 @@ module PgMultisearch
         primary.strategy_name == :tsearch && primary.highlight?
       end
 
-      # @param [Types::Type, String]
+      # @param [Type, String]
       #
       # @return [void]
-      def by_type(type)
+      def by_type(type) # rubocop:disable AbcSize
+        type = case type
+        when ::String, Type
+          bind(:searchable_type, type.to_s)
+        when ::Array
+          type.map.with_index { |t, i| bind("searchable_type#{i}".to_sym, t.to_s) }
+        else
+          return
+        end
+
         projections << searchable_type
-        constraints.replace([searchable_type.eq(bind(:type, type.to_s))] | constraints)
+        constraints.replace([searchable_type.in(type)] | constraints)
       end
 
       # @return [ast.Attribute]

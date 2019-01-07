@@ -76,5 +76,3 @@ module PgMultisearch
   end
   private_constant :Types
 end
-
-require_relative './type.rb'

@@ -189,11 +189,16 @@ module PgMultisearch
       to_a.each(&block)
     end
 
-    # @param [Integer, String, Indexable] value
+    # @param [Integer, String, Indexable, Array] value
     #
     # @return [void]
     def type=(value)
-      options[:type] = value.present? ? self.class.types[value] : nil
+      return if value.blank?
+
+      options[:type] = case value
+      when ::Array                        then value.map { |t| self.class.types[t] }
+      when ::Integer, ::String, Indexable then self.class.types[value]
+      end
     end
 
     # @param [:desc, :asc] value
