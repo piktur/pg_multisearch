@@ -129,7 +129,7 @@ module PgMultisearch
 
         yield values if block_given?
 
-        content = values.delete('content')
+        content = values.delete(index.projection(:tsearch))
 
         [values, prepare_content(content, **options)]
       end
@@ -155,7 +155,8 @@ module PgMultisearch
       end
 
       def weights(weights)
-        ast.sql("'{#{Array(weights).join(',')}}'::text[]")
+        # ast.sql("ARRAY[#{Array(weights).map { |e| "'#{e}'" }.join(', ')}]")
+        ast.sql("'{#{Array(weights).join(',')}}'") # ::text[]
       end
 
       def pg_multisearch_content(
