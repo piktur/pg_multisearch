@@ -6,27 +6,26 @@ module PgMultisearch
   #     include PgMultisearch::Search
   #   end
   #
-  #   params  = { 'search' => 'query', 'type' => 'Organisation' }
-  #   options = {
-  #     preload:   true,
-  #     threshold: 0.6,
-  #     weights:   %w(A B)
+  #   params  = {
+  #     'search' => 'query',
+  #     'type'   => 'Organisation'
   #   }
   #
-  #   search = Search.new(options)
+  #   options = {
+  #     scope_name: :search,
+  #     preload:    true,
+  #     threshold:  0.6,
+  #     weights:    %w(A B)
+  #   }
   #
-  #   search.call(params)
+  #   search = Search.call(params, options)
   #
   #   # or
   #
-  #   search.call(params, scope_name: :suggestions)
-  #
-  #   # or
-  #
-  #   search.call(params) do |current_scope, builder|
+  #   search = Search.call(params, options) do |current_scope, builder|
   #     current_scope
-  #       .where(%{ data @> '{"name":"von"}'::jsonb })
-  #       .page(page)
+  #       .where(%{ data ->> 'country' IN ('Jupiter') })
+  #       .page(params[:page].to_i)
   #   end
   #
   #   # Materialize the relation
@@ -45,19 +44,20 @@ module PgMultisearch
       attr_reader :types
 
       # @example
-      #   class SearchControler
+      #   class SearchesController
       #     def index
-      #       @search, @results = Search[params, :search]
+      #       @search = Search(params, scope_name: :search)
       #     end
       #   end
       #
       # @param [Hash] params
-      # @param [Symbol] scope_name One of {Index::ClassMethods#scopes}
+      # @param [Hash] options
+      #
+      # @option [Symbol] options :scope_name (:search) One of {Index::ClassMethods#scopes}
       #
       # @return [Search]
       def call(params, options = {}, &block)
         new(options).tap do |search|
-          # search.tap { |obj| obj.call(scope_name, options, &block) }.to_a
           search.call(params, options, &block) # Don't load the relation
         end
       end

@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.com/piktur/pg_multisearch.svg?branch=master)](https://travis-ci.com/piktur/pg_multisearch)
 
-PgMultisearch extends [pg_search](https://github.com/Casecommons/pg_search) providing better support for multi table search indices.
+PgMultisearch provides **Full Text Search** capabilities against a global search index.
+
+Inspired by and improves upon [`pg_search`'s](https://github.com/Casecommons/pg_search) [multi search](https://github.com/Casecommons/pg_search#multi-search) feature.
 
 ## Install
 
@@ -72,10 +74,16 @@ Search.configure do |config, index| # rubocop:disable BlockLength
   config.search do |scope|
     scope.filter_by do |filter|
       filter.primary   = index.strategy(:tsearch)
-      filter.secondary = index.strategy(:dmetaphone) # :trigram
+      filter.secondary = index.strategy(:dmetaphone) # Sound alike
+      filter.tertiary  = index.strategy(:trigram)    # Fuzzy
     end
 
     scope.rank_by do |rank|
+      # Apply
+      rank.calculation = lambda { |primary, secondary, tertiary, ast|
+        ast.group(primary + ast.group(secondary * 0.2)) / 2
+      }
+
       # Calculates the average of three scores
       rank.primary   = index.strategy(:tsearch)
       rank.secondary = index.strategy(:trigram)
@@ -156,30 +164,28 @@ end
     'type' => 'Organisation'
   }
   options = {
-    preload:   true,
-    threshold: 0.6,
-    weights:   %w(A B)
+    scope_name: :search,
+    preload:    true,
+    threshold:  0.6,
+    weights:    %w(A B)
   }
 
-  # Initialize the Search delegator
-  search = Search.call(options) # #<Search>
+  # Initialize the Search delegator with request paramters and options
+  search = Search.call(params, options) # => #<Search>
 
-  # Call with request paramters and options
-  search.call(params, options)
-
-  search.call(params, scope_name: :suggestions)
+  Search.call(params, scope_name: :suggestions, limit: 10).to_a
 
   # Apply further refinements to the scope
-  search.call(params) do |current_scope, builder|
+  search = Search.call(params, options) do |current_scope, builder|
     current_scope
+      .where(%{ data ->> 'country' IN ('Saturn') })
       .where(%{ data @> '{"name":"von"}'::jsonb })
+      .where(type: %w(Oblong))
       .page(page)
   end
 
   # Materialize the relation
   search.to_a
-
-  search.call(params, scope_name: :suggestions, limit: 10).to_a
 
   # or Handle loading yourself
   search.load do |relation|
@@ -192,7 +198,6 @@ end
     res.clear
     tuples
   end
-
 ```
 
 ## Index
