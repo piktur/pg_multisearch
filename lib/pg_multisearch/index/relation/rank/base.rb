@@ -78,19 +78,17 @@ module PgMultisearch
         projections << rank(&calc).as(RANK_ALIAS)
       end
 
+      # @param [Strategies::Strategy] strategies
+      # @param [Hash] options
+      #
       # @return [ast.Node]
-      def rank(primary = self.primary, secondary = self.secondary, **options)
-        primary = primary.rank(options)
+      def rank(*strategies, **options)
+        rank = (strategies.presence || self.strategies).map { |strategy| strategy.rank(options) }
 
         if block_given?
-          if secondary
-            yield(primary, secondary.rank(options))
-          else
-            yield(primary)
-          end
+          yield(*rank, ast)
         else
-          # @todo handle secondary strategy
-          primary
+          ast.math.avg(*rank)
         end
       end
 
