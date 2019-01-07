@@ -10,8 +10,8 @@ module PgMultisearch
       # @param (see Rank#initialize)
       #
       # @option [Hash{[String,]=>[Symbol,]}] options :polymorphic
-      def initialize(relation, *args, polymorphic:, **)
-        super(relation, *args) do
+      def initialize(relation, *, polymorphic:, **options)
+        super(relation, nil, options) do
           @strategies = {}
 
           polymorphic.each do |types, strategy_names|
@@ -98,8 +98,8 @@ module PgMultisearch
         # @param [Array] types A list of constrained types
         #
         # @return [ast.Node]
-        # @return [ast.Node] if `other` == :default
-        # @return [ast.Node] if `other` is an Array
+        # @return [ast.Node] if `other == :default`
+        # @return [ast.Node] if `other` is an `Array`
         def searchable_type?(other)
           ast.nodes.send(
             (other == :default && :not_in) || (other.is_a?(::Array) ? :in : :eq),
