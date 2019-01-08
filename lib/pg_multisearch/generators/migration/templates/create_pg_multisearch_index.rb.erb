@@ -20,13 +20,17 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     add_index :<%= table_name %>, :content, using: :gin
     add_index :<%= table_name %>, :dmetaphone, using: :gin
 
-    <%= postgresql_version('<', 96_000) %> && execute(<<-SQL.strip)
+<% if postgresql_version < 96_000 -%>
+    execute(<<-SQL.strip)
 <%= create_function_tsvector_to_array %>
     SQL
+<% end -%>
 
-    <%= postgresql_version('<', 110_000) %> && execute(<<-SQL.strip)
+<% if postgresql_version < 110_000 -%>
+    execute(<<-SQL.strip)
 <%= create_function_jsonb_to_tsvector %>
     SQL
+<% end -%>
 
     execute(<<-SQL.strip)
 <%= create_function_jsonb_fields_to_text %>
@@ -103,13 +107,17 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
 <%= drop_function_jsonb_fields_to_text %>
     SQL
 
-    <%= postgresql_version('<', 110_000) %> && execute(<<-SQL.strip)
+<% if postgresql_version < 110_000 -%>
+    execute(<<-SQL.strip)
 <%= drop_function_jsonb_to_tsvector %>
     SQL
+<% end -%>
 
-    <%= postgresql_version('<', 96_000) %> && execute(<<-SQL.strip)
+<% if postgresql_version < 96_000 -%>
+    execute(<<-SQL.strip)
 <%= drop_function_tsvector_to_array %>
     SQL
+<% end -%>
 
     execute <<-SQL.strip
 <%= drop_type_searchable %>

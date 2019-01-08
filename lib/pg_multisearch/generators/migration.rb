@@ -26,8 +26,8 @@ module PgMultisearch::Generators
         ::ActiveRecord::Base.connection
       end
 
-      def postgresql_version(operator = '<', version)
-        "::ActiveRecord::Base.connection.send(:postgresql_version) #{operator} #{version}"
+      def postgresql_version
+        ::ActiveRecord::Base.connection.send(:postgresql_version)
       end
 
       def load_migration(name)
