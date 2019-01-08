@@ -139,6 +139,11 @@ module PgMultisearch
         end
 
         projections << searchable_type
+        # @todo Terrible idea to add n bind params according to input; defeats the point of
+        #   prepared statements. Ideally I'd express this as `searchable_type = ANY($1)` or
+        #   `searchable_type = ANY('{Organisation,Move}')` however Rails isn't able to cast and
+        #   quote an Array to a Postgres Array. Postgres won't accept, nor should it, the Array
+        #   body as text either. Must we compromise Postgres for Rails sake. Defiantly NO!
         constraints.replace([searchable_type.in(type)] | constraints)
       end
 
