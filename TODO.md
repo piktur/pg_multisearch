@@ -21,6 +21,12 @@
 * [ ] Supported PostgreSQL versions should be able to execute multi insert on rebuild
 * [ ] exec ANALYZE on table after bulk update; stats should be refreshed
 
+* [ ] `Document::Base` should be read only
+* [ ] Find a way to cast bound variable of type array when executing prepared statement. See `Filter::Base#by_type`
+* [ ] Implement tertiary strategies
+* [ ] document yield params for Configuration::Rank#calculation. Yield all strategies and the ast to the `Rank::Base#calc` block. Otherwise they should be able to write the arel or sequel that they know.
+  Resolved, write test
+
 * [ ] Improve plugin interface and documentation
 * [ ] Improve adapter interface, decouple from Rails and ActiveRecor
 * [ ] Improve generator flexibility. The user should be able to customise the table schema
