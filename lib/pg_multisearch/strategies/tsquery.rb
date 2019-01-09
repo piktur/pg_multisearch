@@ -95,11 +95,12 @@ module PgMultisearch
         #   If {#negated?}, preserves leading {LEXEME_NOT} otherwise removes all occurrences
         #   If {#weighted?}, appends {#weights} to the `word`
         def word(word)
-          l, unbound, r = grouped(word)
-          word = [*l, negated(unbound), *r]
+          lparen, unbound, rparen = grouped(word)
+          word = [*lparen, negated(unbound)]
           word.push(COLON) if prefix? || weighted?
           word.push(PREFIX) if prefix?
           word.push(weights.join) if weighted?
+          word.push(rparen) if rparen
 
           word.join
         end
