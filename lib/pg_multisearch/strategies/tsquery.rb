@@ -219,11 +219,7 @@ module PgMultisearch
 
         # @return [Array<String>]
         def weights
-          weights = %i(strategies tsearch weights).reduce(config) do |h, k|
-            h.fetch(k) { return EMPTY_ARRAY }
-          end
-
-          Array(weights)
+          config[:weights] || EMPTY_ARRAY
         end
 
         # @return [ast.SqlLiteral]

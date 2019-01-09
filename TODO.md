@@ -21,6 +21,8 @@
 * [ ] Supported PostgreSQL versions should be able to execute multi insert on rebuild
 * [ ] exec ANALYZE on table after bulk update; stats should be refreshed
 
+* [ ] Filter and Rank tsquery should not be reused, they must remain independent ie. it should be possible to apply weights when filtering but rank without the condition
+
 * [ ] `Document::Base` should be read only
 * [ ] Find a way to cast bound variable of type array when executing prepared statement. See `Filter::Base#by_type`
 * [ ] Implement tertiary strategies
