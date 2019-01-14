@@ -56,6 +56,10 @@ module PgMultisearch
           strategies[1]
         end
 
+        def tertiary
+          strategies[2]
+        end
+
         def copy_tsquery(strategy)
           return unless primary.strategy_name == :tsearch &&
                         strategy.strategy_name == :dmetaphone # &&
