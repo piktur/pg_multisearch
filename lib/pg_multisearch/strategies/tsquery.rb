@@ -97,10 +97,10 @@ module PgMultisearch
         def word(word)
           lparen, unbound, rparen = grouped(word)
           word = [*lparen, negated(unbound)]
-          word.push(COLON) if prefix? || weighted?
-          word.push(PREFIX) if prefix?
-          word.push(weights.join) if weighted?
-          word.push(rparen) if rparen
+          word << COLON if prefix? || weighted?
+          word << PREFIX if prefix?
+          word << weights.join if weighted?
+          word << rparen if rparen
 
           word.join
         end
