@@ -7,7 +7,7 @@ BEGIN
   IF coalesce($1, '') = '' THEN
     RETURN ''::tsquery;
   ELSE
-    RETURN to_tsquery($2, quote_literal($1));
+    RETURN to_tsquery($2, $1);
   END IF;
 END
 $$ LANGUAGE plpgsql;
