@@ -4,12 +4,12 @@ CREATE OR REPLACE FUNCTION jsonb_fields_to_text(
 ) RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
 DECLARE
   path text;
-  headline text := '';
+  str text := '';
 BEGIN
   FOREACH path IN ARRAY $2 LOOP
-    headline := headline || ' ' || coalesce($1 #>> string_to_array(path, ','), '');
+    str := str || ' ' || coalesce($1 #>> string_to_array(path, ','), '');
   END LOOP;
 
-  RETURN trim(leading ' ' from headline);
+  RETURN trim(leading ' ' from str);
 END
 $$ LANGUAGE plpgsql;
