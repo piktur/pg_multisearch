@@ -83,11 +83,11 @@ module PgMultisearch
           tsquery_builder.call(input)
         end
 
-        # @param [String] column
+        # @param [String] input
         #
         # @return [ast.Node]
-        def to_tsvector(column)
-          ast.fn.to_tsvector(dictionary, column)
+        def to_tsvector(input)
+          ast.fn.to_tsvector(dictionary, input)
         end
 
         # @return [String]
