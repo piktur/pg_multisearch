@@ -30,13 +30,13 @@ module PgMultisearch
       # @return [ast.Node]
       def rank(&block)
         ast.nodes.case(
-          strategies.map do |types, (primary, secondary)|
+          strategies.map do |types, strategies|
             [
               searchable_type?(types),
               # @todo Ensure appropriate normalization applied to ts_rank;
               #   scores must be within 0.0..1.0
               # @see https://stats.stackexchange.com/questions/281162/scale-a-number-between-a-range
-              super(primary, secondary, polymorphic: true, &block)
+              super(*strategies, polymorphic: true, &block)
             ]
           end,
           nil,
