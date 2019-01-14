@@ -23,7 +23,7 @@ BEGIN
         (t.value IN ('""', 'null')) OR NOT
         (filter ? jsonb_typeof(t.value));
 
-      codes := codes || ' ' || string_to_dmetaphone(t.value::text);
+      codes := codes || ' ' || string_to_dmetaphone(weighted ->> t.key);
     END LOOP;
 
     tsv_fragment := dmetaphone_to_tsvector(trim(leading ' ' from codes));
