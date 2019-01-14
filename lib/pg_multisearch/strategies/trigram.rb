@@ -11,6 +11,8 @@ module PgMultisearch
         :trigram
       end
 
+      # @note Uses native PostgreSQL function `quote_literal` to prevent SQL injection.
+      #
       # @return [ast.Node]
       def normalized_query
         normalize(
