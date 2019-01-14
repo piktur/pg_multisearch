@@ -189,6 +189,18 @@ module PgMultisearch
         )
       end
 
+      # @param [String]
+      #
+      # @return [Arel::Nodes::NamedFunction]
+      def tsquery_to_dmetaphone(str)
+        fn(
+          'tsquery_to_dmetaphone'.freeze,
+          [
+            str
+          ]
+        )
+      end
+
       # @param [String] str
       # @param [String] dictionary
       #

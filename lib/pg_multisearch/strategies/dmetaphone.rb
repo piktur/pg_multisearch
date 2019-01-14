@@ -23,7 +23,7 @@ module PgMultisearch
         # @return [ast.Node]
         def to_tsquery(input)
           ast.fn.dmetaphone_to_tsquery(
-            ast.fn.string_to_dmetaphone(
+            ast.fn.tsquery_to_dmetaphone(
               normalize(
                 # bind(tsquery_builder.query || tsquery_builder.parse(input))
                 bind(tsquery_builder.parse(input))
@@ -32,14 +32,15 @@ module PgMultisearch
           )
         end
 
-        # @param [String] column
+        # @param [String] input
         #
         # @return [ast.Node]
-        def to_tsvector(column)
+        def to_tsvector(input)
           ast.fn.dmetaphone_to_tsvector(
             ast.fn.string_to_dmetaphone(
-              column
-            )
+              input
+            ),
+            dictionary
           )
         end
     end

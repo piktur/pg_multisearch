@@ -1,15 +1,18 @@
 CREATE OR REPLACE FUNCTION string_to_dmetaphone(text)
-RETURNS text IMMUTABLE PARALLEL SAFE AS $$ -- STRICT
+RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
 DECLARE
-  t text;
-  r text := '(\w+)(?:[\s:]?[\*]?[A-D]*)'; -- (?:[\s\!]?)
-  f text := 'gi';
-  codes text := '' || $1;
+  word text;
+  code text;
+  codes text := '';
 BEGIN
-  FOR t IN SELECT regexp_matches[1] FROM regexp_matches($1, r, f) LOOP
-    codes := replace(codes, t, dmetaphone(t));
+  FOREACH word IN ARRAY string_to_array($1, ' ') LOOP
+    code := dmetaphone(word);
+
+    CONTINUE WHEN (code IS NULL) OR (code = '');
+
+    codes := codes || ' ' || code;
   END LOOP;
 
-  RETURN codes;
+  RETURN trim(leading ' ' from codes);
 END
 $$ LANGUAGE plpgsql;
