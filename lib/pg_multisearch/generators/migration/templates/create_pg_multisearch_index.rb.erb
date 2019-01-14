@@ -20,7 +20,7 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     add_index :<%= table_name %>, :content, using: :gin
     add_index :<%= table_name %>, :dmetaphone, using: :gin
 
-<% if postgresql_version < 96_000 -%>
+<% if postgresql_version < 90_600 -%>
     execute(<<-SQL.strip)
 <%= create_function_tsvector_to_array %>
     SQL
@@ -113,7 +113,7 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     SQL
 <% end -%>
 
-<% if postgresql_version < 96_000 -%>
+<% if postgresql_version < 90_600 -%>
     execute(<<-SQL.strip)
 <%= drop_function_tsvector_to_array %>
     SQL

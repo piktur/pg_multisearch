@@ -164,7 +164,7 @@ module PgMultisearch
 
     # @todo Execute concurrently
     # @todo Run create/update callbacks explicitly (but, who in their right mind would trigger callbacks here?)
-    # @todo Use INSERT INTO pg_multisearch_index ON CONFLICT DO UPDATE ... if postgresql_version > 95_000
+    # @todo Use INSERT INTO pg_multisearch_index ON CONFLICT DO UPDATE ... if postgresql_version > 90_500
     #
     # @return [void]
     def create_or_update_pg_multisearch_document

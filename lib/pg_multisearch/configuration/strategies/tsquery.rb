@@ -10,8 +10,8 @@ module PgMultisearch
 
     def tsquery_function=(fn)
       case (fn = fn.to_sym)
-      when :plainto_tsquery      then check!(95_000, fn)
-      when :phraseto_tsquery     then check!(96_000, fn)
+      when :plainto_tsquery      then check!(90_500, fn)
+      when :phraseto_tsquery     then check!(90_600, fn)
       when :websearch_to_tsquery then check!(110_000, fn)
       when :to_tsquery           then nil
       else
