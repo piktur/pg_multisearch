@@ -4,32 +4,37 @@ CREATE OR REPLACE FUNCTION pg_multisearch_dmetaphone(
 )
 RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
 DECLARE
-  weight text;
   t record;
-  data jsonb;
-  codes text := '';
-  tsvector tsvector := ''::tsvector;
+  weight text;
+  weighted jsonb;
   filter jsonb := '["string"]'::jsonb;
+  codes text := '';
+  tsv tsvector := ''::tsvector;
+  tsv_fragment tsvector;
 BEGIN
   FOREACH weight IN ARRAY $2 LOOP
-    data := $1::jsonb -> weight;
+    weighted := $1::jsonb -> weight;
 
-    FOR t IN SELECT * FROM jsonb_each(data) LOOP
-      IF filter ? jsonb_typeof(t.value) THEN
-        codes := codes || ' ' || string_to_dmetaphone(data ->> t.key);
-      END IF;
+    CONTINUE WHEN (weighted IS NULL) OR (weighted IN ('""', 'null', '{}'));
+
+    FOR t IN SELECT * FROM jsonb_each(weighted) LOOP
+      CONTINUE WHEN
+        (t.value IS NULL) OR
+        (t.value IN ('""', 'null')) OR NOT
+        (filter ? jsonb_typeof(t.value));
+
+      codes := codes || ' ' || string_to_dmetaphone(t.value::text);
     END LOOP;
 
-    tsvector := tsvector || setweight(
-      dmetaphone_to_tsvector(
-        quote_literal(
-          trim(leading ' ' from codes)
-        )
-      ),
-      weight::"char"
-    );
+    tsv_fragment := dmetaphone_to_tsvector(trim(leading ' ' from codes));
+
+    codes := ''; -- clear before next iteration
+
+    CONTINUE WHEN (tsv_fragment IS NULL) OR (tsv_fragment = '');
+
+    tsv := tsv || setweight(tsv_fragment, weight::"char");
   END LOOP;
 
-  RETURN tsvector;
+  RETURN tsv;
 END
 $$ LANGUAGE plpgsql;

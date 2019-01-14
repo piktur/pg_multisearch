@@ -5,14 +5,19 @@ CREATE OR REPLACE FUNCTION pg_multisearch_content(
 RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
 DECLARE
   weight text;
+  data jsonb;
   tsvector tsvector := ''::tsvector;
   filter jsonb := '["string"]'::jsonb;
 BEGIN
   FOREACH weight IN ARRAY $2 LOOP
+    data := ($1::jsonb -> weight);
+
+    CONTINUE WHEN (data IS NULL) OR (data IN ('""', 'null'));
+
     tsvector := tsvector || setweight(
       jsonb_to_tsvector(
         get_current_ts_config(),
-        $1::jsonb -> weight,
+        data,
         filter
       ),
       weight::"char"
