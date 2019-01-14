@@ -4,6 +4,9 @@ module PgMultisearch
   module Strategies
     class Tsquery < Strategy
       ILLEGAL_TSQUERY_CHARS = "'\?\\:‘’".freeze # /['?\\:]/.freeze
+      # Captures:
+      #   * {LEXEME_OR} and {LEXEME_AND} whether surrounded by whitespace or not, and
+      #   * any number of white space characters
       WORD_REGEX  = /(?:\s){0,}([\&\|])(?:\s){0,}|(\s)+/.freeze
       COLON       = ':'.freeze
       CONCAT      = '||'.freeze
@@ -64,6 +67,7 @@ module PgMultisearch
       def parse(input)
         return ast.build_quoted(EMPTY_STRING) if input.blank?
 
+        input = input.squish # Remove leading, trailing and non-significant inner whitespace
         input = sanitize(input)
         input = if tsquery_function == :to_tsquery
           (words = input.split(WORD_REGEX)).length == 1 ? word(words) : words(words)
