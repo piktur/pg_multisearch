@@ -88,7 +88,7 @@ module PgMultisearch
         if block_given?
           yield(*rank, ast)
         else
-          ast.math.avg(*rank)
+          rank.length > 1 ? ast.math.avg(*rank) : rank[0]
         end
       end
 
@@ -102,12 +102,27 @@ module PgMultisearch
         strategies[1]
       end
 
+      # @return [Strategies::Strategy]
+      def tertiary
+        strategies[2]
+      end
+
+      # @todo It SHOULD NOT be necessary to project raw searchable text columns;
+      #   they're only necessary when performing the rank calculation.
+      #   So as long as we add referenced columns to filter_cte_table projections we can safely
+      #   remove them from the outer select projections.
+      #
       # @return [Projections]
       def projections
         @projections ||= Projections.new(
           source_table,
-          *strategies.flat_map(&:projections)
+          # *columns_referenced_by_strategies
         )
+      end
+
+      # @return [Array<ast.Node>]
+      def columns_referenced_by_strategies
+        strategies.flat_map(&:projections)
       end
 
       # @return [ast.Node]

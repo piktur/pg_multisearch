@@ -36,6 +36,10 @@ module PgMultisearch
 
           rank.call(options)
 
+          # Use {#project_append} to ensure all columns referenced by the ranking strategies
+          # are projected from filter_cte_table.
+          project_append(*rank.columns_referenced_by_strategies)
+
           bind_params.merge(rank.bind_params) if rank.bind_params.present?
           projections.replace(projections | rank.projections)
           sources.replace(sources | rank.sources) if rank.sources.present?

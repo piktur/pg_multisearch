@@ -80,8 +80,13 @@ module PgMultisearch
       def projections
         @projections ||= Projections.new(
           source_table,
-          *strategies.flat_map(&:projections)
+          *columns_referenced_by_strategies
         )
+      end
+
+      # @return [Array<ast.Node>]
+      def columns_referenced_by_strategies
+        strategies.flat_map(&:projections)
       end
 
       # @return [Array<ast.Node>]
