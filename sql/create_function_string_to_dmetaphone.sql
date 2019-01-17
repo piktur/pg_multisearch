@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION string_to_dmetaphone(text)
-RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
+RETURNS text IMMUTABLE%{parallel} STRICT AS $$
 DECLARE
   word text;
   code text;

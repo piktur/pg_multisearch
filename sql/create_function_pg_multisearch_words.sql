@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION pg_multisearch_words(
   text[] default ARRAY['A'],
   bool default TRUE
 )
-RETURNS text STABLE PARALLEL SAFE STRICT AS $$
+RETURNS text STABLE%{parallel} STRICT AS $$
 DECLARE
   weight text;
   weighted jsonb;

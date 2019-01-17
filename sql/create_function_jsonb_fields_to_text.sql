@@ -1,7 +1,7 @@
 CREATE OR REPLACE FUNCTION jsonb_fields_to_text(
   jsonb,
   text[]
-) RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
+) RETURNS text IMMUTABLE%{parallel} STRICT AS $$
 DECLARE
   path text;
   str text := '';

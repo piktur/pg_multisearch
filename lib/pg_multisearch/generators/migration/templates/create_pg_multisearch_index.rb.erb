@@ -41,6 +41,10 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
     SQL
 
     execute <<-SQL.strip
+<%= create_function_tsquery_to_dmetaphone %>
+    SQL
+
+    execute <<-SQL.strip
 <%= create_function_dmetaphone_to_tsquery %>
     SQL
 
@@ -101,6 +105,10 @@ class CreatePgMultisearchIndex < ActiveRecord::Migration
 
     execute <<-SQL.strip
 <%= drop_function_string_to_dmetaphone %>
+    SQL
+
+    execute <<-SQL.strip
+<%= drop_function_tsquery_to_dmetaphone %>
     SQL
 
     execute(<<-SQL.strip)

@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION tsquery_to_dmetaphone(text)
-RETURNS text IMMUTABLE PARALLEL SAFE STRICT AS $$
+RETURNS text IMMUTABLE%{parallel} STRICT AS $$
 DECLARE
   t text;
   codes text := '' || $1;

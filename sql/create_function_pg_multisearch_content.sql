@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION pg_multisearch_content(
   jsonb,
   text[] default ARRAY['A','B','C','D']
 )
-RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
+RETURNS tsvector STABLE%{parallel} STRICT AS $$
 DECLARE
   weight text;
   data jsonb;

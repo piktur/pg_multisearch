@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION jsonb_to_tsvector(
   jsonb,
   jsonb default '["all"]'::jsonb
 )
-RETURNS tsvector IMMUTABLE PARALLEL SAFE STRICT AS $$
+RETURNS tsvector IMMUTABLE%{parallel} STRICT AS $$
 DECLARE
   unconstrained bool := ($3 ->> 0) = 'all';
   content text := '';

@@ -36,11 +36,11 @@ module PgMultisearch::Generators
         "load '#{migration}'" if migration
       end
 
-      def read_sql_file(filename = __callee__)
+      def read_sql_file(filename = __callee__, **options)
         dir = ::File.expand_path('../../../sql', __dir__)
         filename = ::File.join(dir, "#{filename}.sql")
 
-        ::File.read(filename).strip
+        format(::File.read(filename).strip, options)
       end
 
       def inflector

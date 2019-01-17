@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION pg_multisearch_dmetaphone(
   jsonb,
   text[] default ARRAY['A']
 )
-RETURNS tsvector STABLE PARALLEL SAFE STRICT AS $$
+RETURNS tsvector STABLE%{parallel} STRICT AS $$
 DECLARE
   t record;
   weight text;
