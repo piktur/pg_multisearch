@@ -13,7 +13,7 @@ BEGIN
     IF unconstrained OR ($3 ? jsonb_typeof(t.value)) THEN
       CONTINUE WHEN t.value IN ('""', 'null');
 
-      content := content || ' ' || t.value::text;
+      content := content || ' ' || ($2 ->> t.key);
     END IF;
   END LOOP;
 
