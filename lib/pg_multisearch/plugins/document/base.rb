@@ -30,13 +30,14 @@ module PgMultisearch
       # @param [Hash, String] attributes
       # @param [Float] rank
       # @param [String] highlight
-      def initialize(attributes = EMPTY_HASH, rank = 0.0, highlight = nil)
+      def initialize(attributes = {}, rank = 0.0, highlight = nil)
         attributes = case attributes
         when ::String then ::Oj.load(attributes, symbol_keys: true)
         when ::Hash   then attributes.deep_symbolize_keys
+        else {}
         end
 
-        attributes[:__id__]        = attributes[:__id__].to_i
+        attributes[:__id__]        = attributes[:__id__].to_i if attributes.key?(:__id__)
         attributes[:__highlight__] = highlight
 
         super(attributes, rank.to_f)
