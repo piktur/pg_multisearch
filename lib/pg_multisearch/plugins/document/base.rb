@@ -115,6 +115,20 @@ module PgMultisearch
         model._to_partial_path
       end
 
+      # @param [Symbol,] args A list of {#attribute_names}
+      #
+      # @return [Hash] A new Hash including the given attributes
+      def slice(*args)
+        args.each_with_object({}) { |node, h| (value = send(node)) && h[node] = value }
+      end
+
+      # @param [Symbol,] args A list of {#attribute_names}
+      #
+      # @return [Hash] A new Array including the value of the given attributes
+      def values_at(*args)
+        args.each_with_object([]) { |node, arr| (value = send(node)) && arr << value }
+      end
+
       private
 
         def method_missing(method, *)
