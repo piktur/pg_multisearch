@@ -3,11 +3,12 @@
 module PgMultisearch
   module Strategies
     class Tsquery < Strategy
-      ILLEGAL_TSQUERY_CHARS = "'\?\\:‘’".freeze # /['?\\:]/.freeze
+      ILLEGAL_TSQUERY_CHARS = "\?\\:‘’".freeze # /['?\\:]/.freeze
       # Captures:
       #   * {LEXEME_OR} and {LEXEME_AND} whether surrounded by whitespace or not, and
       #   * any number of white space characters
-      WORD_REGEX  = /(?:\s){0,}([\&\|])(?:\s){0,}|(\s)+/.freeze
+      WORD_REGEX  = /(?:\s){0,}([\&\|])(?:\s){0,}|(\s)+/i.freeze
+      APOSTROPHE  = "'".freeze
       COLON       = ':'.freeze
       CONCAT      = '||'.freeze
       LEXEME_AND  = '&'.freeze
@@ -187,9 +188,13 @@ module PgMultisearch
           end
         end
 
+        # @param [String] word
+        #
         # @return [String]
+        #   A String excluding {ILLEGAL_TSQUERY_CHARS} and with an apostrophe inserted before each
+        #   apostrophe ie. "O'Brien" becomes "O''Brien"
         def sanitize(word)
-          remove(word, ILLEGAL_TSQUERY_CHARS)
+          remove(word, ILLEGAL_TSQUERY_CHARS).gsub(APOSTROPHE, "''")
         end
 
         # Warming up --------------------------------------
